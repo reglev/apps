@@ -469,18 +469,23 @@
             ctx.ellipse(rwx, rwy, 28, 10, 0.2, 0, Math.PI * 2);
             ctx.fill(); ctx.stroke();
 
-            // 👁️ Augen auf den Flügeln
-            const wingEyeGlow = 0.4 + Math.sin(t * 3 + i * 1.5) * 0.4;
-            const wingEyeSize = 2 + Math.sin(t * 2 + i) * 0.5;
-            ctx.fillStyle = `rgba(255, 0, 0, ${wingEyeGlow})`;
+            // 👁️ 4 Augen pro Flügel, am oberen Rand
             ctx.shadowColor = '#ff0000';
             ctx.shadowBlur = 8;
-            ctx.beginPath();
-            ctx.arc(lwx, lwy, wingEyeSize, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(rwx, rwy, wingEyeSize, 0, Math.PI * 2);
-            ctx.fill();
+            for (let e = 0; e < 4; e++) {
+                const eyeOffset = -20 + e * 13;
+                const eyeGlow = 0.4 + Math.sin(t * 3 + i * 1.5 + e * 0.8) * 0.4;
+                const eyeSize = 1.8 + Math.sin(t * 2 + e) * 0.4;
+                ctx.fillStyle = `rgba(255, 0, 0, ${eyeGlow})`;
+                // Linker Flügel - Augen oben
+                ctx.beginPath();
+                ctx.arc(lwx + eyeOffset, lwy - 6, eyeSize, 0, Math.PI * 2);
+                ctx.fill();
+                // Rechter Flügel - Augen oben
+                ctx.beginPath();
+                ctx.arc(rwx + eyeOffset, rwy - 6, eyeSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
             ctx.shadowBlur = 0;
             ctx.fillStyle = '#080808';
         }

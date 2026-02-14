@@ -79,6 +79,7 @@
         <p style="color:#aaa; font-style:italic;">Ein Engel ist gefallen.</p>
         <p>Einst ein Wächter des Himmels — jetzt wandert er durch die Dunkelheit, getrieben von unstillbarem <span style="color:#ff0000">Blutdurst</span>.</p>
         <p>Er jagt Menschen. Aber er ist... <span style="color:#ff4444">fair</span>.</p>
+        <p style="color:#aaa;">Jetzt ist er bekannt als der <span style="color:#ff0000; font-size:20px; text-shadow: 0 0 15px #ff0000;">CELESTIAL</span>.</p>
         <p style="color:#ccc; margin-top:10px;">Sammle für ihn alle Blutspuren, während er dich jagt — und er lässt dich am Leben.</p>
         <p style="color:#ff6600; margin-top:15px;">⚠️ Vorsicht: Manche Spuren sind <span style="color:#00cc00">FAKE</span>! Sie kosten dich Punkte.</p>
         <p style="color:#555; margin-top:15px; font-size:13px;">
@@ -459,12 +460,29 @@
         ctx.lineWidth = 1.5;
         for (let i = 0; i < 4; i++) {
             const flap = Math.sin(t * 3 + i * 0.5) * (10 + i * 3);
+            const lwx = mx - 38 - flap, lwy = my - 18 + i * 22;
+            const rwx = mx + 38 + flap, rwy = my - 18 + i * 22;
             ctx.beginPath();
-            ctx.ellipse(mx - 38 - flap, my - 18 + i * 22, 28, 10, -0.2, 0, Math.PI * 2);
+            ctx.ellipse(lwx, lwy, 28, 10, -0.2, 0, Math.PI * 2);
             ctx.fill(); ctx.stroke();
             ctx.beginPath();
-            ctx.ellipse(mx + 38 + flap, my - 18 + i * 22, 28, 10, 0.2, 0, Math.PI * 2);
+            ctx.ellipse(rwx, rwy, 28, 10, 0.2, 0, Math.PI * 2);
             ctx.fill(); ctx.stroke();
+
+            // 👁️ Augen auf den Flügeln
+            const wingEyeGlow = 0.4 + Math.sin(t * 3 + i * 1.5) * 0.4;
+            const wingEyeSize = 2 + Math.sin(t * 2 + i) * 0.5;
+            ctx.fillStyle = `rgba(255, 0, 0, ${wingEyeGlow})`;
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(lwx, lwy, wingEyeSize, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(rwx, rwy, wingEyeSize, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#080808';
         }
 
         // Face wings

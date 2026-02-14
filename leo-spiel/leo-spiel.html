@@ -76,12 +76,14 @@
 <body>
     <div id="startscreen">
         <h1>🔦 FLUCHT IM DUNKELN</h1>
-        <p>Du wachst in der Dunkelheit auf. Deine Taschenlampe flackert.</p>
-        <p>Finde alle Blutspuren, um zu entkommen — aber Vorsicht vor dem <span style="color:#ff0000">Celestial</span>.</p>
-        <p style="color:#ff6600; margin-top:15px;">⚠️ Manche Spuren sind FAKE! Sie kosten dich Punkte.</p>
-        <p style="color:#666; margin-top:15px; font-size:13px;">
+        <p style="color:#aaa; font-style:italic;">Ein Engel ist gefallen.</p>
+        <p>Einst ein Wächter des Himmels — jetzt wandert er durch die Dunkelheit, getrieben von unstillbarem <span style="color:#ff0000">Blutdurst</span>.</p>
+        <p>Er jagt Menschen. Aber er ist... <span style="color:#ff4444">fair</span>.</p>
+        <p style="color:#ccc; margin-top:10px;">Sammle für ihn alle Blutspuren, während er dich jagt — und er lässt dich am Leben.</p>
+        <p style="color:#ff6600; margin-top:15px;">⚠️ Vorsicht: Manche Spuren sind <span style="color:#00cc00">FAKE</span>! Sie kosten dich Punkte.</p>
+        <p style="color:#555; margin-top:15px; font-size:13px;">
             WASD / Pfeiltasten = Bewegen<br>
-            R = Neustart<br>
+            R = Neustart
         </p>
         <button class="start-btn" onclick="startGame()">▶ SPIELEN</button>
     </div>
@@ -328,7 +330,6 @@
             G.teleportTimer = now;
             G.teleportFlash = 800;
             shake(8, 300);
-            spawnParticles(G.monster.x, G.monster.y, '#ffffff', 12);
         }
         if (G.teleportFlash > 0) G.teleportFlash -= dt;
 

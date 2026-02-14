@@ -429,37 +429,39 @@
             }
             
             // 🌲 Bäume im Taschenlampenlicht
-            if (game.trees) {
+            if (game.trees && game.trees.length > 0) {
                 const p = game.player;
+                ctx.save();
                 game.trees.forEach(tree => {
                     const dist = Math.hypot(tree.x - p.x, tree.y - p.y);
-                    if (dist > game.flashlightRadius * 1.5) return;
+                    if (dist > 400) return;
                     
-                    const angle = Math.atan2(tree.y - p.y, tree.x - p.x);
-                    const angleDiff = ((angle - game.flashlightAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+                    // Einfachere Sichtbarkeitsprüfung
+                    const dx = tree.x - p.x;
+                    const dy = tree.y - p.y;
+                    const angleToTree = Math.atan2(dy, dx);
+                    let angleDiff = angleToTree - game.flashlightAngle;
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
                     
-                    if (Math.abs(angleDiff) > game.flashlightCone / 2 + 0.3) return;
+                    if (Math.abs(angleDiff) > Math.PI / 3) return;
                     
-                    const inLight = dist < game.flashlightRadius;
-                    const alpha = inLight ? 1 - dist / game.flashlightRadius : 0;
+                    const alpha = Math.max(0, 1 - dist / 300);
                     if (alpha <= 0) return;
                     
-                    // Baumstamm
                     ctx.globalAlpha = alpha;
-                    ctx.fillStyle = '#3d2817';
-                    ctx.fillRect(tree.x - tree.width/2, tree.y - tree.height, tree.width, tree.height);
                     
-                    // Baumkrone
-                    ctx.fillStyle = '#1a2e1a';
+                    // Baum - größer und heller
+                    ctx.fillStyle = '#4a3520';
+                    ctx.fillRect(tree.x - 6, tree.y - 50, 12, 50);
+                    
+                    // Krone
+                    ctx.fillStyle = '#2d4a2d';
                     ctx.beginPath();
-                    ctx.moveTo(tree.x, tree.y - tree.height - 30);
-                    ctx.lineTo(tree.x - tree.width * 2, tree.y - tree.height * 0.3);
-                    ctx.lineTo(tree.x + tree.width * 2, tree.y - tree.height * 0.3);
-                    ctx.closePath();
+                    ctx.arc(tree.x, tree.y - 55, 25, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    ctx.globalAlpha = 1;
                 });
+                ctx.restore();
             }
         }
         
@@ -472,12 +474,11 @@
             game.trees = [];
             for (let i = 0; i < count; i++) {
                 game.trees.push({
-                    x: Math.random() * canvas.width * 3 - canvas.width,
-                    y: Math.random() * canvas.height * 3 - canvas.height,
-                    height: 30 + Math.random() * 40,
-                    width: 8 + Math.random() * 12
+                    x: (Math.random() - 0.5) * canvas.width * 4,
+                    y: (Math.random() - 0.5) * canvas.height * 4
                 });
             }
+            console.log('Bäume gespawnt:', game.trees.length);
         }
         
         init();

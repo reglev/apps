@@ -8,6 +8,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
       - name: Deploy to Vercel
         run: |
-          curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_u4GiOEA1ZVMmAST3LzLBNaZDsdRB/FgikAU4wiP"
+          echo "Deploying commit: ${{ github.sha }}"
+          RESPONSE=$(curl -s -X POST "https://api.vercel.com/v1/integrations/deploy/prj_u4GiOEA1ZVMmAST3LzLBNaZDsdRB/FgikAU4wiP")
+          echo "Vercel response: $RESPONSE"
+          JOB_ID=$(echo $RESPONSE | grep -o '"id":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+          echo "Job ID: $JOB_ID"
+          echo "Deployment started, check Vercel dashboard"
+          sleep 5
+          # Try a second time for good measure
+          echo "Triggering backup deployment"
+          curl -s -X POST "https://api.vercel.com/v1/integrations/deploy/prj_u4GiOEA1ZVMmAST3LzLBNaZDsdRB/FgikAU4wiP"

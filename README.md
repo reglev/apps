@@ -1,6 +1,14 @@
-# Flucht im Dunkeln - Leo's Survival Horror Game
+# Wenzis Spiele-Sammlung
+
+## 🔗 Live spielen
+
+**GitHub Pages:** https://reglev.github.io/apps/
+
+### Flucht im Dunkeln - Leo's Survival Horror Game
 
 Ein Top-Down Horror-Spiel mit Taschenlampe und gruseligen Celestial-Monster.
+
+**[Direkt zum Spiel](https://reglev.github.io/apps/game/blutspuren.html)**
 
 ## Steuerung
 - **WASD** oder **Pfeiltasten** zum Bewegen

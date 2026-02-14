@@ -105,8 +105,8 @@
             game.player.y = canvas.height / 2;
             game.player.lastAngle = 0;
             
-            // 🌲 Bäume spawnen
-            spawnTrees(40);
+            // 🌲 Dichter Wald (150 Bäume)
+            spawnTrees(150);
             
             // Spawn tracks (9-12)
             game.tracks = [];
@@ -428,40 +428,36 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
-            // 🌲 Bäume im Taschenlampenlicht
+            // 🌲 Dichter Wald - Top-Down Bäume im Licht
             if (game.trees && game.trees.length > 0) {
                 const p = game.player;
-                ctx.save();
                 game.trees.forEach(tree => {
-                    const dist = Math.hypot(tree.x - p.x, tree.y - p.y);
-                    if (dist > 400) return;
-                    
-                    // Einfachere Sichtbarkeitsprüfung
                     const dx = tree.x - p.x;
                     const dy = tree.y - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    // Im Lichtkegel?
                     const angleToTree = Math.atan2(dy, dx);
                     let angleDiff = angleToTree - game.flashlightAngle;
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
                     
-                    if (Math.abs(angleDiff) > Math.PI / 3) return;
+                    const inCone = Math.abs(angleDiff) < game.flashlightCone / 2;
+                    const inRange = dist < game.flashlightRadius;
                     
-                    const alpha = Math.max(0, 1 - dist / 300);
-                    if (alpha <= 0) return;
-                    
-                    ctx.globalAlpha = alpha;
-                    
-                    // Baum - größer und heller
-                    ctx.fillStyle = '#4a3520';
-                    ctx.fillRect(tree.x - 6, tree.y - 50, 12, 50);
-                    
-                    // Krone
-                    ctx.fillStyle = '#2d4a2d';
-                    ctx.beginPath();
-                    ctx.arc(tree.x, tree.y - 55, 25, 0, Math.PI * 2);
-                    ctx.fill();
+                    if (inCone && inRange) {
+                        // Top-Down Baum: dunkler Kreis
+                        ctx.fillStyle = '#1a1a1a';
+                        ctx.beginPath();
+                        ctx.arc(tree.x, tree.y, 20, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Baumring
+                        ctx.strokeStyle = '#0d0d0d';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
                 });
-                ctx.restore();
             }
         }
         
@@ -469,13 +465,13 @@
             if (e.key.toLowerCase() === 'r' && game.gameOver) init();
         });
         
-        // 🌲 Bäume spawnen
+        // 🌲 Dichter Wald spawnen
         function spawnTrees(count) {
             game.trees = [];
             for (let i = 0; i < count; i++) {
                 game.trees.push({
-                    x: (Math.random() - 0.5) * canvas.width * 4,
-                    y: (Math.random() - 0.5) * canvas.height * 4
+                    x: (Math.random() - 0.5) * canvas.width * 5,
+                    y: (Math.random() - 0.5) * canvas.height * 5
                 });
             }
             console.log('Bäume gespawnt:', game.trees.length);

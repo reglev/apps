@@ -126,146 +126,256 @@
     };
 
     // ─── AUDIO ───
-    let audioCtx = null, masterGain = null, organGain = null, heartGain = null;
-    let audioStarted = false, organInterval = null, heartInterval = null;
+    let audioCtx = null, masterGain = null, organGain = null, heartGain = null, whisperGain = null, jumpscareGain = null;
+    let audioStarted = false, organInterval = null, heartInterval = null, whisperInterval = null;
+    let proximityHeartActive = false;
 
     function initAudio() {
         if (audioStarted) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.5;
+        masterGain.gain.value = 0.8;
         masterGain.connect(audioCtx.destination);
 
-        // Organ channel
         organGain = audioCtx.createGain();
-        organGain.gain.value = 0.08;
+        organGain.gain.value = 0.2;
         organGain.connect(masterGain);
 
-        // Heartbeat channel
         heartGain = audioCtx.createGain();
         heartGain.gain.value = 0;
         heartGain.connect(masterGain);
+
+        whisperGain = audioCtx.createGain();
+        whisperGain.gain.value = 0;
+        whisperGain.connect(masterGain);
+
+        jumpscareGain = audioCtx.createGain();
+        jumpscareGain.gain.value = 1.0;
+        jumpscareGain.connect(audioCtx.destination); // bypass master for LOUD
 
         audioStarted = true;
         startOrgan();
     }
 
-    // 🎵 Eerie Organ - leise im Hintergrund
+    // ─── 🎵 EERIE ORGAN ───
     function playOrganNote(freq, dur) {
         if (!audioCtx) return;
+        const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         const filter = audioCtx.createBiquadFilter();
-
-        // Organ = layered oscillators through low-pass
         osc.type = 'sawtooth';
         osc.frequency.value = freq;
         filter.type = 'lowpass';
         filter.frequency.value = 400;
         filter.Q.value = 2;
-
-        g.gain.setValueAtTime(0, audioCtx.currentTime);
-        g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.3);
-        g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + dur * 0.6);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.3, t + 0.3);
+        g.gain.linearRampToValueAtTime(0.15, t + dur * 0.6);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
         osc.connect(filter);
         filter.connect(g);
         g.connect(organGain);
-        osc.start();
-        osc.stop(audioCtx.currentTime + dur);
+        osc.start(); osc.stop(t + dur);
 
-        // Add subtle second voice (fifth above)
-        const osc2 = audioCtx.createOscillator();
+        // Quinte darüber
+        const o2 = audioCtx.createOscillator();
         const g2 = audioCtx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.value = freq * 1.5;
-        g2.gain.setValueAtTime(0, audioCtx.currentTime);
-        g2.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.5);
-        g2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-        osc2.connect(g2);
-        g2.connect(organGain);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + dur);
+        o2.type = 'sine'; o2.frequency.value = freq * 1.5;
+        g2.gain.setValueAtTime(0, t);
+        g2.gain.linearRampToValueAtTime(0.1, t + 0.5);
+        g2.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o2.connect(g2); g2.connect(organGain);
+        o2.start(); o2.stop(t + dur);
     }
 
     const organNotes = [55, 58.27, 65.41, 73.42, 82.41, 87.31, 98, 110];
     function startOrgan() {
         if (organInterval) return;
-        function playNext() {
+        function next() {
             if (!G.started || G.gameOver) return;
-            const note = organNotes[Math.floor(Math.random() * organNotes.length)];
-            const dur = 2 + Math.random() * 4;
-            playOrganNote(note, dur);
-            organInterval = setTimeout(playNext, (2000 + Math.random() * 3000));
+            playOrganNote(organNotes[Math.floor(Math.random() * organNotes.length)], 2 + Math.random() * 4);
+            organInterval = setTimeout(next, 2000 + Math.random() * 3000);
         }
-        playNext();
+        next();
     }
+    function stopOrgan() { if (organInterval) { clearTimeout(organInterval); organInterval = null; } }
 
-    function stopOrgan() {
-        if (organInterval) { clearTimeout(organInterval); organInterval = null; }
-    }
-
-    // 💓 Herzschlag-Echo für Dark Pulse
+    // ─── 💓 HERZSCHLAG (Monster-Nähe) ───
     function playHeartbeat() {
         if (!audioCtx) return;
-        const now = audioCtx.currentTime;
-
-        // "Lub" - tiefer Schlag
-        const osc1 = audioCtx.createOscillator();
-        const g1 = audioCtx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(60, now);
-        osc1.frequency.exponentialRampToValueAtTime(30, now + 0.15);
-        g1.gain.setValueAtTime(0.6, now);
-        g1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-        osc1.connect(g1);
-        g1.connect(heartGain);
-        osc1.start(now);
-        osc1.stop(now + 0.25);
-
-        // "Dub" - zweiter Schlag
-        const osc2 = audioCtx.createOscillator();
-        const g2 = audioCtx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(50, now + 0.15);
-        osc2.frequency.exponentialRampToValueAtTime(25, now + 0.3);
-        g2.gain.setValueAtTime(0, now);
-        g2.gain.setValueAtTime(0.4, now + 0.15);
-        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-        osc2.connect(g2);
-        g2.connect(heartGain);
-        osc2.start(now);
-        osc2.stop(now + 0.45);
-
-        // Echo (delayed, quieter)
-        const osc3 = audioCtx.createOscillator();
-        const g3 = audioCtx.createGain();
-        osc3.type = 'sine';
-        osc3.frequency.setValueAtTime(45, now + 0.5);
-        osc3.frequency.exponentialRampToValueAtTime(20, now + 0.7);
-        g3.gain.setValueAtTime(0.15, now + 0.5);
-        g3.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-        osc3.connect(g3);
-        g3.connect(heartGain);
-        osc3.start(now + 0.5);
-        osc3.stop(now + 0.85);
+        const t = audioCtx.currentTime;
+        // Lub
+        const o1 = audioCtx.createOscillator(), g1 = audioCtx.createGain();
+        o1.type = 'sine';
+        o1.frequency.setValueAtTime(65, t);
+        o1.frequency.exponentialRampToValueAtTime(30, t + 0.15);
+        g1.gain.setValueAtTime(0.7, t);
+        g1.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        o1.connect(g1); g1.connect(heartGain);
+        o1.start(t); o1.stop(t + 0.25);
+        // Dub
+        const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
+        o2.type = 'sine';
+        o2.frequency.setValueAtTime(55, t + 0.12);
+        o2.frequency.exponentialRampToValueAtTime(25, t + 0.3);
+        g2.gain.setValueAtTime(0, t);
+        g2.gain.setValueAtTime(0.5, t + 0.12);
+        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        o2.connect(g2); g2.connect(heartGain);
+        o2.start(t); o2.stop(t + 0.4);
     }
 
-    function startHeartbeat() {
-        if (heartInterval) return;
-        heartGain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.3);
-        playHeartbeat();
-        heartInterval = setInterval(playHeartbeat, 900);
+    function updateProximityHeart(distance) {
+        if (!audioCtx || !heartGain) return;
+        if (distance < 200) {
+            const intensity = (1 - distance / 200) * 0.8;
+            heartGain.gain.linearRampToValueAtTime(intensity, audioCtx.currentTime + 0.1);
+            if (!proximityHeartActive) {
+                proximityHeartActive = true;
+                heartInterval = setInterval(playHeartbeat, 700);
+                playHeartbeat();
+            }
+        } else {
+            if (proximityHeartActive) {
+                proximityHeartActive = false;
+                heartGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                if (heartInterval) { clearInterval(heartInterval); heartInterval = null; }
+            }
+        }
     }
 
-    function stopHeartbeat() {
+    // ─── 👻 FLÜSTERNDE STIMMEN (Dark Pulse) ───
+    function playWhisper() {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime;
+        const dur = 0.5 + Math.random() * 1.5;
+
+        // Noise-basierte Stimme durch schmalen Bandpass
+        const bufSize = audioCtx.sampleRate * dur;
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+            // Moduliertes Rauschen mit Formanten
+            const env = Math.sin(i / bufSize * Math.PI);
+            const tremolo = 0.5 + 0.5 * Math.sin(i / audioCtx.sampleRate * (8 + Math.random() * 15) * Math.PI * 2);
+            data[i] = (Math.random() * 2 - 1) * env * tremolo;
+        }
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+
+        // Bandpass-Filter für stimmähnlichen Klang
+        const bp = audioCtx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 300 + Math.random() * 600;
+        bp.Q.value = 5 + Math.random() * 10;
+
+        // Zweiter Filter für mehr "Stimme"
+        const bp2 = audioCtx.createBiquadFilter();
+        bp2.type = 'bandpass';
+        bp2.frequency.value = 1500 + Math.random() * 1500;
+        bp2.Q.value = 3;
+
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.4, t + 0.1);
+        g.gain.setValueAtTime(0.3, t + dur * 0.5);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+        // Stereo-Pan für räumlichen Effekt
+        const pan = audioCtx.createStereoPanner();
+        pan.pan.value = (Math.random() - 0.5) * 1.8;
+
+        src.connect(bp);
+        bp.connect(bp2);
+        bp2.connect(g);
+        g.connect(pan);
+        pan.connect(whisperGain);
+        src.start(t); src.stop(t + dur);
+
+        // Gelegentlich tiefes Stöhnen dazu
+        if (Math.random() < 0.3) {
+            const moan = audioCtx.createOscillator();
+            const mg = audioCtx.createGain();
+            moan.type = 'sawtooth';
+            moan.frequency.setValueAtTime(80 + Math.random() * 40, t);
+            moan.frequency.linearRampToValueAtTime(60 + Math.random() * 30, t + dur);
+            const mf = audioCtx.createBiquadFilter();
+            mf.type = 'lowpass'; mf.frequency.value = 200;
+            mg.gain.setValueAtTime(0, t);
+            mg.gain.linearRampToValueAtTime(0.15, t + 0.2);
+            mg.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            moan.connect(mf); mf.connect(mg); mg.connect(whisperGain);
+            moan.start(t); moan.stop(t + dur);
+        }
+    }
+
+    function startWhispers() {
+        if (whisperInterval) return;
+        if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.3);
+        playWhisper();
+        whisperInterval = setInterval(playWhisper, 400 + Math.random() * 600);
+    }
+
+    function stopWhispers() {
+        if (whisperInterval) { clearInterval(whisperInterval); whisperInterval = null; }
+        if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    }
+
+    // ─── 💀 JUMPSCARE ───
+    function playJumpscare() {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime;
+
+        // Lauter dissonanter Akkord
+        const freqs = [100, 113, 150, 200, 233, 300, 400, 466];
+        freqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = i % 2 === 0 ? 'sawtooth' : 'square';
+            o.frequency.setValueAtTime(f, t);
+            o.frequency.linearRampToValueAtTime(f * 0.5, t + 1.5);
+            g.gain.setValueAtTime(0.5, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+            o.connect(g); g.connect(jumpscareGain);
+            o.start(t); o.stop(t + 1.6);
+        });
+
+        // Schreiende Noise-Burst
+        const bufSize = audioCtx.sampleRate * 0.8;
+        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+            const env = Math.exp(-i / (audioCtx.sampleRate * 0.3));
+            data[i] = (Math.random() * 2 - 1) * env;
+        }
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        const hp = audioCtx.createBiquadFilter();
+        hp.type = 'highpass'; hp.frequency.value = 800;
+        const sg = audioCtx.createGain();
+        sg.gain.value = 0.6;
+        src.connect(hp); hp.connect(sg); sg.connect(jumpscareGain);
+        src.start(t); src.stop(t + 0.8);
+
+        // Tiefes Dröhnen
+        const drone = audioCtx.createOscillator();
+        const dg = audioCtx.createGain();
+        drone.type = 'sawtooth';
+        drone.frequency.value = 35;
+        dg.gain.setValueAtTime(0.7, t);
+        dg.gain.exponentialRampToValueAtTime(0.001, t + 2);
+        drone.connect(dg); dg.connect(jumpscareGain);
+        drone.start(t); drone.stop(t + 2.1);
+    }
+
+    function stopAllAudio() {
+        stopOrgan(); stopWhispers();
         if (heartInterval) { clearInterval(heartInterval); heartInterval = null; }
-        if (heartGain) heartGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        proximityHeartActive = false;
+        if (heartGain) heartGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+        if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
     }
-
-    // Audio mit User-Interaktion starten
-    function tryInitAudio() { initAudio(); }
 
     // ─── PARTICLES ───
     function spawnParticles(x, y, color, count = 8) {
@@ -405,7 +515,7 @@
         document.getElementById('total').textContent = G.total;
         document.getElementById('message').style.display = 'none';
         document.getElementById('toast').style.opacity = 0;
-        if (audioStarted) { stopHeartbeat(); startOrgan(); }
+        if (audioStarted) { stopAllAudio(); startOrgan(); }
     }
 
     // ─── INPUT ───
@@ -496,20 +606,24 @@
             G.darkPulseActive = true;
             G.darkPulseTimer = now;
             shake(6, 400);
-            startHeartbeat();
+            startWhispers();
         }
         if (G.darkPulseActive && now - G.darkPulseTimer > 4000) {
             G.darkPulseActive = false;
             G.darkPulseTimer = now;
-            stopHeartbeat();
+            stopWhispers();
         }
 
         // Catch player
+        // Herzschlag basierend auf Monster-Nähe
+        updateProximityHeart(md);
+
         if (md < 28) {
             G.gameOver = true;
             G.won = false;
             shake(15, 500);
-            stopOrgan(); stopHeartbeat();
+            stopAllAudio();
+            playJumpscare();
             showMessage('💀 DU WURDEST ERWISCHT!<br><small>R = Neustart</small>');
         }
 
@@ -543,7 +657,7 @@
                     G.gameOver = true;
                     G.won = true;
                     const secs = Math.floor((Date.now() - G.startTime) / 1000);
-                    stopOrgan(); stopHeartbeat();
+                    stopAllAudio();
                     showMessage(`🏆 ENTKOMMEN!<br><small>${secs}s — R = Neustart</small>`, '#00ff00');
                 }
             }

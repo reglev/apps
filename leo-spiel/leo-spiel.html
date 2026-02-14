@@ -210,18 +210,18 @@
         o1.type = 'sine';
         o1.frequency.setValueAtTime(65, t);
         o1.frequency.exponentialRampToValueAtTime(30, t + 0.15);
-        g1.gain.setValueAtTime(0.7, t);
-        g1.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        g1.gain.setValueAtTime(1.0, t);
+        g1.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
         o1.connect(g1); g1.connect(heartGain);
-        o1.start(t); o1.stop(t + 0.25);
+        o1.start(t); o1.stop(t + 0.3);
         // Dub
         const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
         o2.type = 'sine';
         o2.frequency.setValueAtTime(55, t + 0.12);
-        o2.frequency.exponentialRampToValueAtTime(25, t + 0.3);
+        o2.frequency.exponentialRampToValueAtTime(25, t + 0.35);
         g2.gain.setValueAtTime(0, t);
-        g2.gain.setValueAtTime(0.5, t + 0.12);
-        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        g2.gain.setValueAtTime(0.8, t + 0.12);
+        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
         o2.connect(g2); g2.connect(heartGain);
         o2.start(t); o2.stop(t + 0.4);
     }
@@ -229,7 +229,7 @@
     function updateProximityHeart(distance) {
         if (!audioCtx || !heartGain) return;
         if (distance < 200) {
-            const intensity = (1 - distance / 200) * 0.8;
+            const intensity = (1 - distance / 200) * 1.5;
             heartGain.gain.linearRampToValueAtTime(intensity, audioCtx.currentTime + 0.1);
             if (!proximityHeartActive) {
                 proximityHeartActive = true;
@@ -327,46 +327,78 @@
         if (!audioCtx) return;
         const t = audioCtx.currentTime;
 
-        // Lauter dissonanter Akkord
-        const freqs = [100, 113, 150, 200, 233, 300, 400, 466];
-        freqs.forEach((f, i) => {
+        // 1. HÖLLISCHER CHOR - dissonante "Stimmen"
+        const choirFreqs = [110, 116.5, 130.8, 138.6, 155.6, 164.8, 185, 196, 233, 277];
+        choirFreqs.forEach((f, i) => {
             const o = audioCtx.createOscillator();
             const g = audioCtx.createGain();
-            o.type = i % 2 === 0 ? 'sawtooth' : 'square';
+            o.type = i % 3 === 0 ? 'sawtooth' : i % 3 === 1 ? 'square' : 'triangle';
             o.frequency.setValueAtTime(f, t);
-            o.frequency.linearRampToValueAtTime(f * 0.5, t + 1.5);
-            g.gain.setValueAtTime(0.5, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+            // Frequenz fällt langsam - wie fallender Engel
+            o.frequency.linearRampToValueAtTime(f * 0.3, t + 3);
+            g.gain.setValueAtTime(0.6, t);
+            g.gain.setValueAtTime(0.5, t + 0.5);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 3);
             o.connect(g); g.connect(jumpscareGain);
-            o.start(t); o.stop(t + 1.6);
+            o.start(t); o.stop(t + 3.1);
         });
 
-        // Schreiende Noise-Burst
-        const bufSize = audioCtx.sampleRate * 0.8;
-        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) {
-            const env = Math.exp(-i / (audioCtx.sampleRate * 0.3));
-            data[i] = (Math.random() * 2 - 1) * env;
+        // 2. SCHREI - lauter Noise-Burst mit Formanten
+        for (let s = 0; s < 3; s++) {
+            const delay = s * 0.3;
+            const bufSize = audioCtx.sampleRate * 1.2;
+            const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) {
+                const env = Math.exp(-i / (audioCtx.sampleRate * 0.5));
+                const formant = Math.sin(i / audioCtx.sampleRate * (800 + s * 400) * Math.PI * 2);
+                data[i] = (Math.random() * 2 - 1) * env * (0.5 + formant * 0.5);
+            }
+            const src = audioCtx.createBufferSource();
+            src.buffer = buf;
+            const bp = audioCtx.createBiquadFilter();
+            bp.type = 'bandpass'; bp.frequency.value = 1000 + s * 500; bp.Q.value = 3;
+            const sg = audioCtx.createGain();
+            sg.gain.setValueAtTime(0.8, t + delay);
+            sg.gain.exponentialRampToValueAtTime(0.001, t + delay + 1.2);
+            const pan = audioCtx.createStereoPanner();
+            pan.pan.value = (s - 1) * 0.8;
+            src.connect(bp); bp.connect(sg); sg.connect(pan); pan.connect(jumpscareGain);
+            src.start(t + delay); src.stop(t + delay + 1.3);
         }
-        const src = audioCtx.createBufferSource();
-        src.buffer = buf;
-        const hp = audioCtx.createBiquadFilter();
-        hp.type = 'highpass'; hp.frequency.value = 800;
-        const sg = audioCtx.createGain();
-        sg.gain.value = 0.6;
-        src.connect(hp); hp.connect(sg); sg.connect(jumpscareGain);
-        src.start(t); src.stop(t + 0.8);
 
-        // Tiefes Dröhnen
+        // 3. TIEFES ERDBEBEN-DRÖHNEN
         const drone = audioCtx.createOscillator();
         const dg = audioCtx.createGain();
         drone.type = 'sawtooth';
-        drone.frequency.value = 35;
-        dg.gain.setValueAtTime(0.7, t);
-        dg.gain.exponentialRampToValueAtTime(0.001, t + 2);
+        drone.frequency.setValueAtTime(30, t);
+        drone.frequency.linearRampToValueAtTime(15, t + 3);
+        dg.gain.setValueAtTime(1.0, t);
+        dg.gain.exponentialRampToValueAtTime(0.001, t + 3);
         drone.connect(dg); dg.connect(jumpscareGain);
-        drone.start(t); drone.stop(t + 2.1);
+        drone.start(t); drone.stop(t + 3.1);
+
+        // 4. GLOCKE DES GEFALLENEN
+        const bell = audioCtx.createOscillator();
+        const bg = audioCtx.createGain();
+        bell.type = 'sine';
+        bell.frequency.setValueAtTime(440, t);
+        bell.frequency.exponentialRampToValueAtTime(220, t + 2);
+        bg.gain.setValueAtTime(0.4, t);
+        bg.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+        bell.connect(bg); bg.connect(jumpscareGain);
+        bell.start(t); bell.stop(t + 2.6);
+
+        // 5. SUB-BASS IMPACT
+        const sub = audioCtx.createOscillator();
+        const subg = audioCtx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(50, t);
+        sub.frequency.exponentialRampToValueAtTime(10, t + 0.5);
+        subg.gain.setValueAtTime(1.0, t);
+        subg.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+        sub.connect(subg); subg.connect(jumpscareGain);
+        sub.start(t); sub.stop(t + 0.7);
     }
 
     function stopAllAudio() {

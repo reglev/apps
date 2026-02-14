@@ -208,7 +208,7 @@
 
         // Spawn real tracks (9-12) in clusters
         G.tracks = [];
-        const total = 9 + Math.floor(Math.random() * 4);
+        const total = 14 + Math.floor(Math.random() * 5);
         let created = 0;
 
         while (created < total) {
@@ -330,7 +330,6 @@
                 G.player.y + Math.sin(G.player.angle) * dist));
             G.teleportTimer = now;
             G.teleportFlash = 800;
-            shake(8, 300);
         }
         if (G.teleportFlash > 0) G.teleportFlash -= dt;
 
@@ -470,13 +469,13 @@
             ctx.fill(); ctx.stroke();
 
             // 👁️ 4 Augen pro Flügel, am oberen Rand
-            ctx.shadowColor = '#ff0000';
-            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 10;
             for (let e = 0; e < 4; e++) {
                 const eyeOffset = -20 + e * 13;
                 const eyeGlow = 0.4 + Math.sin(t * 3 + i * 1.5 + e * 0.8) * 0.4;
                 const eyeSize = 1.8 + Math.sin(t * 2 + e) * 0.4;
-                ctx.fillStyle = `rgba(255, 0, 0, ${eyeGlow})`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${eyeGlow})`;
                 // Linker Flügel - Augen oben
                 ctx.beginPath();
                 ctx.arc(lwx + eyeOffset, lwy - 6, eyeSize, 0, Math.PI * 2);
@@ -517,8 +516,8 @@
         // Eyes (red, always visible — the scary part)
         const ea = Math.atan2(G.player.y - my, G.player.x - mx);
         const eyeGlow = 0.6 + Math.sin(t * 4) * 0.4;
-        ctx.fillStyle = `rgba(255, 0, 0, ${eyeGlow})`;
-        ctx.shadowColor = '#ff0000';
+        ctx.fillStyle = `rgba(255, 255, 255, ${eyeGlow})`;
+        ctx.shadowColor = '#ffffff';
         ctx.shadowBlur = 20;
         ctx.beginPath();
         ctx.arc(mx + Math.cos(ea + 0.2) * 5, my + Math.sin(ea + 0.2) * 5 - 4, 3.5, 0, Math.PI * 2);
@@ -602,10 +601,34 @@
         if (distM < 200 && !G.gameOver) danger = Math.max(danger, (1 - distM / 200) * 0.5);
         if (G.teleportFlash > 0) danger = Math.max(danger, (G.teleportFlash / 800) * 0.7);
 
-        // Dark Pulse purple overlay
+        // Dark Pulse Realm - intensivere Effekte
         if (G.darkPulseActive) {
-            ctx.fillStyle = 'rgba(60, 0, 80, 0.35)';
+            // Lila Overlay
+            ctx.fillStyle = 'rgba(60, 0, 80, 0.4)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Pulsierende Ränder
+            const pulseI = 0.3 + Math.sin(Date.now() / 200) * 0.2;
+            const dpg = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, canvas.height * 0.15,
+                canvas.width / 2, canvas.height / 2, canvas.height * 0.6);
+            dpg.addColorStop(0, 'transparent');
+            dpg.addColorStop(1, `rgba(100, 0, 150, ${pulseI})`);
+            ctx.fillStyle = dpg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Flackernde Partikel am Rand
+            if (Math.random() < 0.3) {
+                const side = Math.random() * 4 | 0;
+                const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
+                const py = side >= 2 ? Math.random() * canvas.height : (side === 0 ? 0 : canvas.height);
+                spawnParticles(px, py, '#8800ff', 2);
+            }
+            
+            // Taschenlampe flackert leicht
+            G.flashRadius = 260 - Math.random() * 40;
+        } else {
+            G.flashRadius = 260;
         }
 
         // Red danger vignette

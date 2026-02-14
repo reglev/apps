@@ -131,7 +131,7 @@
                         y: cy + Math.sin(angle) * dist,
                         size: (15 + Math.random() * 20) * sizeMult,
                         color: Math.random() < 0.5 ? 'dark' : 'strong',
-                        type: Math.random() < 0.1 ? 'corpse' : 'blood', // 10% chance for corpse
+                        type: Math.random() < 0.5 ? 'corpse' : 'blood', // 50% chance for corpse
                         found: false
                     });
                     created++;

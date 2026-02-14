@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "github": {
+    "silent": true,
+    "autoAlias": true,
+    "enabled": true
+  },
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "public": true,
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}

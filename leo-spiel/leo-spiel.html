@@ -45,18 +45,6 @@
             color: #666;
             font-size: 14px;
         }
-        #music-hint {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            color: #444;
-            font-size: 12px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
     </style>
 </head>
 <body>
@@ -66,7 +54,6 @@
     <div id="timer">Zeit: 0s</div>
     <div id="message"></div>
     <div id="instructions">WASD/ Pfeile • Alle Spuren finden zum Gewinnen!</div>
-    <div id="music-hint">🔊 Klick für Sound</div>
     <canvas id="game"></canvas>
 
     <script>
@@ -117,6 +104,9 @@
             game.player.x = canvas.width / 2;
             game.player.y = canvas.height / 2;
             game.player.lastAngle = 0;
+            
+            // 🌲 Bäume spawnen
+            spawnTrees(40);
             
             // Spawn tracks (9-12)
             game.tracks = [];
@@ -443,49 +433,61 @@
             if (e.key.toLowerCase() === 'r' && game.gameOver) init();
         });
         
-        // 🎵 Gruselige Orgelmusik mit Web Audio API
-        let audioCtx, gainNode, isMusicPlaying = false;
+        // 🌲 Bäume - nur im Taschenlampenlicht sichtbar
+        const game = window.game || {};
+        game.trees = [];
         
-        function initAudio() {
-            if (isMusicPlaying) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0.15;
-            gainNode.connect(audioCtx.destination);
-            isMusicPlaying = true;
-            playOrganTone(55, 8); // Start with deep bass
-            scheduleOrgan();
+        function spawnTrees(count) {
+            game.trees = [];
+            for (let i = 0; i < count; i++) {
+                game.trees.push({
+                    x: Math.random() * canvas.width * 3 - canvas.width,
+                    y: Math.random() * canvas.height * 3 - canvas.height,
+                    height: 30 + Math.random() * 40,
+                    width: 8 + Math.random() * 12
+                });
+            }
         }
         
-        const organNotes = [55, 58.27, 65.41, 73.42, 82.41, 87.31, 98, 110, 116.54, 130.81, 146.83, 164.81];
-        let noteIndex = 0;
-        
-        function scheduleOrgan() {
-            if (!isMusicPlaying) return;
-            const note = organNotes[Math.floor(Math.random() * organNotes.length)];
-            const duration = 1 + Math.random() * 3;
-            playOrganTone(note, duration);
-            setTimeout(scheduleOrgan, (1500 + Math.random() * 2500));
+        function renderTrees() {
+            const p = game.player;
+            game.trees.forEach(tree => {
+                const dist = Math.hypot(tree.x - p.x, tree.y - p.y);
+                if (dist > game.flashlightRadius * 1.5) return;
+                
+                const angle = Math.atan2(tree.y - p.y, tree.x - p.x);
+                const angleDiff = ((angle - game.flashlightAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+                
+                if (Math.abs(angleDiff) > game.flashlightCone / 2 + 0.3) return;
+                
+                const inLight = dist < game.flashlightRadius;
+                const alpha = inLight ? 1 - dist / game.flashlightRadius : 0;
+                if (alpha <= 0) return;
+                
+                // Baumstamm
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#3d2817';
+                ctx.fillRect(tree.x - tree.width/2, tree.y - tree.height, tree.width, tree.height);
+                
+                // Baumkrone
+                ctx.fillStyle = '#1a2e1a';
+                ctx.beginPath();
+                ctx.moveTo(tree.x, tree.y - tree.height - 30);
+                ctx.lineTo(tree.x - tree.width * 2, tree.y - tree.height * 0.3);
+                ctx.lineTo(tree.x + tree.width * 2, tree.y - tree.height * 0.3);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+            });
         }
         
-        function playOrganTone(freq, duration) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const oscGain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.value = freq;
-            oscGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            oscGain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
-            oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(oscGain);
-            oscGain.connect(gainNode);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
-        
-        // Musik starten bei Klick
-        document.addEventListener('click', initAudio, { once: true });
-        document.addEventListener('keydown', initAudio, { once: true });
+        // Override render to add trees
+        const originalRender = render;
+        render = function() {
+            originalRender();
+            renderTrees();
+        };
         
         init();
         function loop() { update(); render(); requestAnimationFrame(loop); }

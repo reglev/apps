@@ -131,13 +131,26 @@
                         y: cy + Math.sin(angle) * dist,
                         size: (15 + Math.random() * 20) * sizeMult,
                         color: Math.random() < 0.5 ? 'dark' : 'strong',
-                        type: 'blood', // only blood puddles
-                        found: false
+                        type: 'blood',
+                        isFake: false
                     });
                     created++;
                 }
             }
             game.totalTracks = created;
+            
+            // Monster creates fake tracks (3-5 fake tracks)
+            const fakeCount = 3 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < fakeCount; i++) {
+                game.tracks.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: 15 + Math.random() * 15,
+                    color: Math.random() < 0.5 ? 'dark' : 'strong',
+                    type: 'blood',
+                    isFake: true
+                });
+            }
             
             // Monster far away
             do {
@@ -245,7 +258,14 @@
                         
                         if (Math.abs(diff) < game.flashlightCone / 2) {
                             track.found = true;
-                            game.foundTracks++;
+                            
+                            if (track.isFake) {
+                                // Fake track - subtract point!
+                                game.foundTracks = Math.max(0, game.foundTracks - 1);
+                                showMessage('FALSCHE SPUR!<br><small>-1 Punkt</small>', '#ff6600');
+                            } else {
+                                game.foundTracks++;
+                            }
                             document.getElementById('score').textContent = game.foundTracks;
                             
                             if (game.foundTracks >= game.totalTracks) {

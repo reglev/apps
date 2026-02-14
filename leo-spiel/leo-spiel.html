@@ -131,6 +131,7 @@
                         y: cy + Math.sin(angle) * dist,
                         size: (15 + Math.random() * 20) * sizeMult,
                         color: Math.random() < 0.5 ? 'dark' : 'strong',
+                        type: Math.random() < 0.1 ? 'corpse' : 'blood', // 10% chance for corpse
                         found: false
                     });
                     created++;
@@ -271,22 +272,37 @@
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw tracks
+            // Draw tracks (blood puddles and corpses)
             game.tracks.forEach(track => {
                 if (!track.found) {
                     const d = Math.hypot(track.x - game.player.x, track.y - game.player.y);
                     if (d < game.flashlightRadius) {
-                        let r, g, b, a;
-                        if (track.color === 'dark') {
-                            r = 120; g = 50; b = 40; a = 0.6;
+                        let r, g, b, a, size;
+                        if (track.type === 'corpse') {
+                            // 💀 Leiche - größer, dunkler
+                            r = 40; g = 30; b = 30; a = 0.9;
+                            size = track.size * 1.5;
                         } else {
-                            r = 220; g = 30; b = 30; a = 1.0;
+                            // Blood puddle
+                            if (track.color === 'dark') {
+                                r = 120; g = 50; b = 40; a = 0.6;
+                            } else {
+                                r = 220; g = 30; b = 30; a = 1.0;
+                            }
+                            size = track.size;
                         }
                         const alpha = (1 - d / game.flashlightRadius) * a;
                         ctx.beginPath();
-                        ctx.arc(track.x, track.y, track.size, 0, Math.PI * 2);
+                        ctx.arc(track.x, track.y, size, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
                         ctx.fill();
+                        
+                        // Leiche: Kreuz symbol
+                        if (track.type === 'corpse') {
+                            ctx.fillStyle = `rgba(20,20,20,${alpha})`;
+                            ctx.fillRect(track.x - 3, track.y - size*0.6, 6, size*1.2);
+                            ctx.fillRect(track.x - size*0.5, track.y - 3, size*1, 6);
+                        }
                     }
                 }
             });
@@ -426,17 +442,11 @@
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            
-                    }
-                });
-            }
         }
         
         document.addEventListener('keydown', e => {
             if (e.key.toLowerCase() === 'r' && game.gameOver) init();
         });
-        
-        // 🌲 Dichter Wald spawnen
         
         init();
         function loop() { update(); render(); requestAnimationFrame(loop); }

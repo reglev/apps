@@ -105,8 +105,7 @@
             game.player.y = canvas.height / 2;
             game.player.lastAngle = 0;
             
-            // 🌲 Dichter Wald (150 Bäume)
-            spawnTrees(150);
+            // Bäume entfernt
             
             // Spawn tracks (9-12)
             game.tracks = [];
@@ -428,34 +427,6 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
-            // 🌲 Dichter Wald - Top-Down Bäume im Licht
-            if (game.trees && game.trees.length > 0) {
-                const p = game.player;
-                game.trees.forEach(tree => {
-                    const dx = tree.x - p.x;
-                    const dy = tree.y - p.y;
-                    const dist = Math.hypot(dx, dy);
-                    
-                    // Im Lichtkegel?
-                    const angleToTree = Math.atan2(dy, dx);
-                    let angleDiff = angleToTree - game.flashlightAngle;
-                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-                    
-                    const inCone = Math.abs(angleDiff) < game.flashlightCone / 2;
-                    const inRange = dist < game.flashlightRadius;
-                    
-                    if (inCone && inRange) {
-                        // Top-Down Baum: dunkler Kreis
-                        ctx.fillStyle = '#1a1a1a';
-                        ctx.beginPath();
-                        ctx.arc(tree.x, tree.y, 20, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        // Baumring
-                        ctx.strokeStyle = '#0d0d0d';
-                        ctx.lineWidth = 3;
-                        ctx.stroke();
                     }
                 });
             }
@@ -466,16 +437,6 @@
         });
         
         // 🌲 Dichter Wald spawnen
-        function spawnTrees(count) {
-            game.trees = [];
-            for (let i = 0; i < count; i++) {
-                game.trees.push({
-                    x: (Math.random() - 0.5) * canvas.width * 5,
-                    y: (Math.random() - 0.5) * canvas.height * 5
-                });
-            }
-            console.log('Bäume gespawnt:', game.trees.length);
-        }
         
         init();
         function loop() { update(); render(); requestAnimationFrame(loop); }

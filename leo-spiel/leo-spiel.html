@@ -329,7 +329,6 @@
             G.teleportFlash = 800;
             shake(8, 300);
             spawnParticles(G.monster.x, G.monster.y, '#ffffff', 12);
-            showToast('⚡ DIVINE PREDICTION', '#ffffff', 1200);
         }
         if (G.teleportFlash > 0) G.teleportFlash -= dt;
 
@@ -337,7 +336,6 @@
         if (G.lightsOutPhase === 'none' && now - G.lightsOutTimer > 13000) {
             G.lightsOutPhase = 'flicker';
             G.lightsOutStart = now;
-            showToast('💡 LIGHTS OUT...', '#ffff00', 2000);
         }
         if (G.lightsOutPhase === 'flicker' && now - G.lightsOutStart > 3000) {
             G.lightsOutPhase = 'dark';
@@ -354,7 +352,6 @@
             G.darkPulseActive = true;
             G.darkPulseTimer = now;
             shake(6, 400);
-            showToast('💀 DARK PULSE REALM', '#8800ff', 1500);
         }
         if (G.darkPulseActive && now - G.darkPulseTimer > 4000) {
             G.darkPulseActive = false;
@@ -388,12 +385,12 @@
                 // Fake! Subtract point + warning
                 G.found = Math.max(0, G.found - 1);
                 shake(6, 250);
-                spawnParticles(track.x, track.y, '#ff6600', 10);
+                spawnParticles(track.x, track.y, '#00ff00', 12);
                 showToast('⚠️ FALSCHE SPUR! -1', '#ff6600', 1500);
             } else {
                 // Real track
                 G.found++;
-                spawnParticles(track.x, track.y, '#00ff00', 8);
+                spawnParticles(track.x, track.y, '#ff0000', 10);
 
                 if (G.found >= G.total) {
                     G.gameOver = true;

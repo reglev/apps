@@ -427,16 +427,47 @@
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
+            
+            // 🌲 Bäume im Taschenlampenlicht
+            if (game.trees) {
+                const p = game.player;
+                game.trees.forEach(tree => {
+                    const dist = Math.hypot(tree.x - p.x, tree.y - p.y);
+                    if (dist > game.flashlightRadius * 1.5) return;
+                    
+                    const angle = Math.atan2(tree.y - p.y, tree.x - p.x);
+                    const angleDiff = ((angle - game.flashlightAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+                    
+                    if (Math.abs(angleDiff) > game.flashlightCone / 2 + 0.3) return;
+                    
+                    const inLight = dist < game.flashlightRadius;
+                    const alpha = inLight ? 1 - dist / game.flashlightRadius : 0;
+                    if (alpha <= 0) return;
+                    
+                    // Baumstamm
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = '#3d2817';
+                    ctx.fillRect(tree.x - tree.width/2, tree.y - tree.height, tree.width, tree.height);
+                    
+                    // Baumkrone
+                    ctx.fillStyle = '#1a2e1a';
+                    ctx.beginPath();
+                    ctx.moveTo(tree.x, tree.y - tree.height - 30);
+                    ctx.lineTo(tree.x - tree.width * 2, tree.y - tree.height * 0.3);
+                    ctx.lineTo(tree.x + tree.width * 2, tree.y - tree.height * 0.3);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.globalAlpha = 1;
+                });
+            }
         }
         
         document.addEventListener('keydown', e => {
             if (e.key.toLowerCase() === 'r' && game.gameOver) init();
         });
         
-        // 🌲 Bäume - nur im Taschenlampenlicht sichtbar
-        const game = window.game || {};
-        game.trees = [];
-        
+        // 🌲 Bäume spawnen
         function spawnTrees(count) {
             game.trees = [];
             for (let i = 0; i < count; i++) {
@@ -448,46 +479,6 @@
                 });
             }
         }
-        
-        function renderTrees() {
-            const p = game.player;
-            game.trees.forEach(tree => {
-                const dist = Math.hypot(tree.x - p.x, tree.y - p.y);
-                if (dist > game.flashlightRadius * 1.5) return;
-                
-                const angle = Math.atan2(tree.y - p.y, tree.x - p.x);
-                const angleDiff = ((angle - game.flashlightAngle + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-                
-                if (Math.abs(angleDiff) > game.flashlightCone / 2 + 0.3) return;
-                
-                const inLight = dist < game.flashlightRadius;
-                const alpha = inLight ? 1 - dist / game.flashlightRadius : 0;
-                if (alpha <= 0) return;
-                
-                // Baumstamm
-                ctx.globalAlpha = alpha;
-                ctx.fillStyle = '#3d2817';
-                ctx.fillRect(tree.x - tree.width/2, tree.y - tree.height, tree.width, tree.height);
-                
-                // Baumkrone
-                ctx.fillStyle = '#1a2e1a';
-                ctx.beginPath();
-                ctx.moveTo(tree.x, tree.y - tree.height - 30);
-                ctx.lineTo(tree.x - tree.width * 2, tree.y - tree.height * 0.3);
-                ctx.lineTo(tree.x + tree.width * 2, tree.y - tree.height * 0.3);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.globalAlpha = 1;
-            });
-        }
-        
-        // Override render to add trees
-        const originalRender = render;
-        render = function() {
-            originalRender();
-            renderTrees();
-        };
         
         init();
         function loop() { update(); render(); requestAnimationFrame(loop); }

@@ -251,7 +251,7 @@
         </p>
         <button class="start-btn" onclick="startGame()">▶ SPIELEN</button>
     </div>
-    <div id="ui">Spuren: <span id="score">0</span> / <span id="total">0</span></div>
+    <div id="ui">Spuren: <span id="score">0</span> / <span id="total">0</span> | Verbleibend: <span id="remaining">0</span></div>
     <div id="timer">Zeit: 0s</div>
     <!-- abilities removed -->
     <div id="message"></div>
@@ -933,6 +933,7 @@
 
         document.getElementById('score').textContent = '0';
         document.getElementById('total').textContent = G.total;
+        document.getElementById('remaining').textContent = G.total;
         document.getElementById('message').style.display = 'none';
         document.getElementById('toast').style.opacity = 0;
         if (audioStarted) { stopAllAudio(); startOrgan(); }
@@ -1075,30 +1076,59 @@
             track.found = true;
 
             if (track.isFake) {
-                // Fake! Subtract point + warning
+                // Fake! Subtract point + warning + spawn new real track
                 G.found = Math.max(0, G.found - 1);
                 shake(6, 250);
                 spawnParticles(track.x, track.y, '#00ff00', 12);
                 showToast('⚠️ FALSCHE SPUR! -1', '#ff6600', 1500);
                 playFakeCollect(); // Warn-Sound
+                
+                // Neue echte Blutspur spawnen (garantiert genug Spuren zum Gewinnen)
+                let newX, newY, attempts = 0;
+                do {
+                    newX = 60 + Math.random() * (canvas.width - 120);
+                    newY = 60 + Math.random() * (canvas.height - 120);
+                    attempts++;
+                } while (
+                    (Math.hypot(newX - G.player.x, newY - G.player.y) < 100 ||
+                     Math.hypot(newX - G.monster.x, newY - G.monster.y) < 80) &&
+                    attempts < 30
+                );
+                
+                if (attempts < 30) {
+                    G.tracks.push({
+                        x: newX, y: newY,
+                        size: 12 + Math.random() * 16,
+                        shade: Math.random(),
+                        isFake: false,
+                        found: false
+                    });
+                    // NICHT G.total erhöhen - die neue Spur ist Ersatz
+                }
             } else {
                 // Real track
                 G.found++;
                 spawnParticles(track.x, track.y, '#ff0000', 10);
                 playBloodCollect(); // Blut-Sammel-Sound
+            }
+            
+            // Score und Verbleibend aktualisieren
+            document.getElementById('score').textContent = G.found;
+            const remaining = G.tracks.filter(t => !t.found && !t.isFake).length;
+            document.getElementById('remaining').textContent = remaining;
 
-                // Wenn alle Spuren gefunden -> Tor erscheint
-                if (G.found >= G.total && !G.gate.active) {
-                    G.gate.active = true;
-                    // Tor an zufälliger Position spawnen (nicht zu nah am Monster oder Spieler)
-                    let gateX, gateY;
-                    let attempts = 0;
-                    do {
-                        gateX = 100 + Math.random() * (canvas.width - 200);
-                        gateY = 100 + Math.random() * (canvas.height - 200);
-                        attempts++;
-                    } while ((Math.hypot(gateX - G.player.x, gateY - G.player.y) < 200 ||
-                             Math.hypot(gateX - G.monster.x, gateY - G.monster.y) < 300) &&
+            // Tor erscheint wenn: alle gefunden ODER keine echten mehr da
+            if ((G.found >= G.total || remaining === 0) && !G.gate.active) {
+                G.gate.active = true;
+                // Tor an zufälliger Position spawnen (nicht zu nah am Monster oder Spieler)
+                let gateX, gateY;
+                let attempts = 0;
+                do {
+                    gateX = 100 + Math.random() * (canvas.width - 200);
+                    gateY = 100 + Math.random() * (canvas.height - 200);
+                    attempts++;
+                } while ((Math.hypot(gateX - G.player.x, gateY - G.player.y) < 200 ||
+                         Math.hypot(gateX - G.monster.x, gateY - G.monster.y) < 300) &&
                             attempts < 50);
                     G.gate.x = gateX;
                     G.gate.y = gateY;
@@ -1106,8 +1136,6 @@
                     showToast('🚪 DAS TOR IST OFFEN! FLIEHE!', '#ff00ff', 3000);
                     playGateAppearsSound();
                 }
-            }
-            document.getElementById('score').textContent = G.found;
         });
 
         updateParticles();

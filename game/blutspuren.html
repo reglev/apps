@@ -19,7 +19,6 @@
             color: #888; font-size: 16px;
             pointer-events: none; z-index: 10;
         }
-        /* abilities removed */
         #message {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -68,7 +67,7 @@
             92% { opacity: 1; }
             93% { opacity: 0.3; }
         }
-        
+
         /* JUMPSCARE overlay - Gefallener Engel */
         #jumpscare {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -86,14 +85,12 @@
             align-items: center;
             justify-content: center;
         }
-        /* Gesicht des gefallenen Engels - reines CSS */
         #jumpscare .angel-face {
             position: relative;
             width: 40vmin;
             height: 50vmin;
             animation: faceShake 0.08s infinite;
         }
-        /* Schädel-Form */
         #jumpscare .skull {
             position: absolute;
             width: 100%;
@@ -102,7 +99,6 @@
             border-radius: 45% 45% 35% 35%;
             box-shadow: 0 0 80px #ff0000, 0 0 120px #880000, inset 0 0 60px rgba(255,0,0,0.3);
         }
-        /* Augenhöhlen */
         #jumpscare .eye {
             position: absolute;
             width: 28%;
@@ -115,7 +111,6 @@
         }
         #jumpscare .eye.left { left: 12%; }
         #jumpscare .eye.right { right: 12%; }
-        /* Pupillen - glühend */
         #jumpscare .eye::after {
             content: '';
             position: absolute;
@@ -127,7 +122,6 @@
             border-radius: 50%;
             animation: pupilPulse 0.1s infinite;
         }
-        /* Mund - aufgerissen */
         #jumpscare .mouth {
             position: absolute;
             width: 50%;
@@ -139,7 +133,6 @@
             box-shadow: 0 0 30px #880000, inset 0 -10px 20px #220000;
             overflow: hidden;
         }
-        /* Zähne */
         #jumpscare .mouth::before {
             content: '';
             position: absolute;
@@ -153,7 +146,6 @@
                 transparent 12%, transparent 20%
             );
         }
-        /* Gebrochener Halo */
         #jumpscare .broken-halo {
             position: absolute;
             top: -8%;
@@ -168,7 +160,6 @@
             animation: haloFlicker 0.2s infinite;
             clip-path: polygon(0 0, 45% 0, 40% 100%, 0 100%, 0 0, 60% 100%, 55% 0, 100% 0, 100% 100%, 60% 100%);
         }
-        /* Risse im Gesicht */
         #jumpscare .crack {
             position: absolute;
             width: 3px;
@@ -179,7 +170,6 @@
         #jumpscare .crack.c1 { height: 40%; top: 20%; left: 35%; transform: rotate(-15deg); }
         #jumpscare .crack.c2 { height: 30%; top: 30%; right: 30%; transform: rotate(10deg); }
         #jumpscare .crack.c3 { height: 25%; top: 45%; left: 45%; transform: rotate(5deg); }
-        /* Blut-Tränen */
         #jumpscare .blood-tear {
             position: absolute;
             width: 8px;
@@ -191,7 +181,6 @@
         }
         #jumpscare .blood-tear.left { left: 22%; }
         #jumpscare .blood-tear.right { right: 22%; }
-        /* Text */
         #jumpscare .death-text {
             position: absolute;
             bottom: 10%;
@@ -238,25 +227,24 @@
 </head>
 <body>
     <div id="startscreen">
-        <h1>🔦 FLUCHT IM DUNKELN</h1>
+        <h1>&#x1F526; FLUCHT IM DUNKELN</h1>
         <p style="color:#aaa; font-style:italic;">Ein Engel ist gefallen.</p>
-        <p>Einst ein Wächter des Himmels — jetzt wandert er durch die Dunkelheit, getrieben von unstillbarem <span style="color:#ff0000">Blutdurst</span>.</p>
+        <p>Einst ein W&auml;chter des Himmels &mdash; jetzt wandert er durch die Dunkelheit, getrieben von unstillbarem <span style="color:#ff0000">Blutdurst</span>.</p>
         <p>Er jagt Menschen. Aber er ist... <span style="color:#ff4444">fair</span>.</p>
         <p style="color:#aaa;">Jetzt ist er bekannt als der <span style="color:#ff0000; font-size:20px; text-shadow: 0 0 15px #ff0000;">CELESTIAL</span>.</p>
-        <p style="color:#ccc; margin-top:10px;">Sammle für ihn alle Blutspuren, während er dich jagt — und er lässt dich am Leben.</p>
-        <p style="color:#ff6600; margin-top:15px;">⚠️ Vorsicht: Manche Spuren sind <span style="color:#00cc00">FAKE</span>! Sie kosten dich Punkte.</p>
+        <p style="color:#ccc; margin-top:10px;">Sammle f&uuml;r ihn alle Blutspuren, w&auml;hrend er dich jagt &mdash; und er l&auml;sst dich am Leben.</p>
+        <p style="color:#ff6600; margin-top:15px;">&#x26A0;&#xFE0F; Vorsicht: Manche Spuren sind <span style="color:#00cc00">FAKE</span>! Sie kosten dich Punkte.</p>
         <p style="color:#555; margin-top:15px; font-size:13px;">
             WASD / Pfeiltasten = Bewegen<br>
             R = Neustart
         </p>
-        <button class="start-btn" onclick="startGame()">▶ SPIELEN</button>
+        <button class="start-btn" id="startBtn">&#x25B6; SPIELEN</button>
     </div>
     <div id="ui">Spuren: <span id="score">0</span> / <span id="total">0</span> | Verbleibend: <span id="remaining">0</span></div>
     <div id="timer">Zeit: 0s</div>
-    <!-- abilities removed -->
     <div id="message"></div>
     <div id="toast"></div>
-    <div id="instructions">WASD / Pfeile • R = Neustart</div>
+    <div id="instructions">WASD / Pfeile &bull; R = Neustart</div>
     <div id="jumpscare">
         <div class="scare-container">
             <div class="angel-face">
@@ -278,16 +266,9 @@
     <canvas id="game"></canvas>
 
     <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-
-    // ─── CONSTANTS ───
+    // ════════════════════════════════════════
+    // 1. CONSTANTS
+    // ════════════════════════════════════════
     const FLASH_RADIUS = 260;
     const HALF_CONE = Math.PI / 3.8;
     const TELEPORT_COOLDOWN = 8000;
@@ -305,1041 +286,1151 @@
     const FAKE_TRACK_SPAWN_MIN_DISTANCE = 150;
     const TWO_PI = Math.PI * 2;
 
-    // ─── GAME STATE ───
-    const G = {
-        player: { x: 0, y: 0, speed: 3.2, angle: 0 },
-        tracks: [],
-        monster: { x: 0, y: 0, speed: 0.7 },
-        particles: [],
-        shakeX: 0, shakeY: 0, shakeDur: 0,
-        // Abilities
-        teleportTimer: 0, teleportCooldown: TELEPORT_COOLDOWN, teleportFlash: 0,
-        lightsOutTimer: 0, lightsOutPhase: 'none', lightsOutStart: 0,
-        darkPulseTimer: 0, darkPulseActive: false,
-        // Game
-        startTime: 0, found: 0, total: 0,
-        gameOver: false, won: false, started: false,
-        flashRadius: FLASH_RADIUS, flashCone: HALF_CONE * 2,
-        // Toast
-        toastTimer: 0,
-        // Exit gate
-        gate: { x: 0, y: 0, active: false, radius: 60 }
-    };
-
-    // ─── AUDIO ───
-    let audioCtx = null, masterGain = null, organGain = null, heartGain = null, whisperGain = null, jumpscareGain = null;
-    let audioStarted = false, organInterval = null, heartInterval = null, whisperInterval = null;
-    let proximityHeartActive = false;
-
-    function initAudio() {
-        if (audioStarted) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.8;
-        masterGain.connect(audioCtx.destination);
-
-        organGain = audioCtx.createGain();
-        organGain.gain.value = 0.2;
-        organGain.connect(masterGain);
-
-        heartGain = audioCtx.createGain();
-        heartGain.gain.value = 0;
-        heartGain.connect(masterGain);
-
-        whisperGain = audioCtx.createGain();
-        whisperGain.gain.value = 0;
-        whisperGain.connect(masterGain);
-
-        jumpscareGain = audioCtx.createGain();
-        jumpscareGain.gain.value = 1.0;
-        jumpscareGain.connect(audioCtx.destination); // bypass master for LOUD
-
-        audioStarted = true;
-        startOrgan();
-    }
-
-    // ─── 🎵 EERIE ORGAN ───
-    function playOrganNote(freq, dur) {
-        if (!audioCtx) return;
-        const t = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        const filter = audioCtx.createBiquadFilter();
-        osc.type = 'sawtooth';
-        osc.frequency.value = freq;
-        filter.type = 'lowpass';
-        filter.frequency.value = 400;
-        filter.Q.value = 2;
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.3, t + 0.3);
-        g.gain.linearRampToValueAtTime(0.15, t + dur * 0.6);
-        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-        osc.connect(filter);
-        filter.connect(g);
-        g.connect(organGain);
-        osc.start(); osc.stop(t + dur);
-
-        // Quinte darüber
-        const o2 = audioCtx.createOscillator();
-        const g2 = audioCtx.createGain();
-        o2.type = 'sine'; o2.frequency.value = freq * 1.5;
-        g2.gain.setValueAtTime(0, t);
-        g2.gain.linearRampToValueAtTime(0.1, t + 0.5);
-        g2.gain.exponentialRampToValueAtTime(0.001, t + dur);
-        o2.connect(g2); g2.connect(organGain);
-        o2.start(); o2.stop(t + dur);
-    }
-
-    const organNotes = [55, 58.27, 65.41, 73.42, 82.41, 87.31, 98, 110];
-    function startOrgan() {
-        if (organInterval) return;
-        function next() {
-            if (!G.started || G.gameOver) return;
-            playOrganNote(organNotes[Math.floor(Math.random() * organNotes.length)], 2 + Math.random() * 4);
-            organInterval = setTimeout(next, 2000 + Math.random() * 3000);
+    // ════════════════════════════════════════
+    // 2. GameState
+    // ════════════════════════════════════════
+    class GameState {
+        constructor() {
+            this.player = { x: 0, y: 0, speed: 3.2, angle: 0 };
+            this.tracks = [];
+            this.monster = { x: 0, y: 0, speed: 0.7 };
+            this.particles = [];
+            this.shakeX = 0;
+            this.shakeY = 0;
+            this.shakeDur = 0;
+            this.shakeIntensity = 0;
+            this.teleportTimer = 0;
+            this.teleportCooldown = TELEPORT_COOLDOWN;
+            this.teleportFlash = 0;
+            this.lightsOutTimer = 0;
+            this.lightsOutPhase = 'none';
+            this.lightsOutStart = 0;
+            this.darkPulseTimer = 0;
+            this.darkPulseActive = false;
+            this.startTime = 0;
+            this.found = 0;
+            this.total = 0;
+            this.gameOver = false;
+            this.won = false;
+            this.started = false;
+            this.flashRadius = FLASH_RADIUS;
+            this.flashCone = HALF_CONE * 2;
+            this.toastTimer = 0;
+            this.gate = { x: 0, y: 0, active: false, radius: 60 };
         }
-        next();
-    }
-    function stopOrgan() { if (organInterval) { clearTimeout(organInterval); organInterval = null; } }
 
-    // ─── 💓 HERZSCHLAG (Monster-Nähe) ───
-    function playHeartbeat() {
-        if (!audioCtx) return;
-        const t = audioCtx.currentTime;
-        // Lub
-        const o1 = audioCtx.createOscillator(), g1 = audioCtx.createGain();
-        o1.type = 'sine';
-        o1.frequency.setValueAtTime(65, t);
-        o1.frequency.exponentialRampToValueAtTime(30, t + 0.15);
-        g1.gain.setValueAtTime(1.0, t);
-        g1.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-        o1.connect(g1); g1.connect(heartGain);
-        o1.start(t); o1.stop(t + 0.3);
-        // Dub
-        const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
-        o2.type = 'sine';
-        o2.frequency.setValueAtTime(55, t + 0.12);
-        o2.frequency.exponentialRampToValueAtTime(25, t + 0.35);
-        g2.gain.setValueAtTime(0, t);
-        g2.gain.setValueAtTime(0.8, t + 0.12);
-        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-        o2.connect(g2); g2.connect(heartGain);
-        o2.start(t); o2.stop(t + 0.4);
+        reset(canvasW, canvasH) {
+            this.found = 0;
+            this.gameOver = false;
+            this.won = false;
+            this.particles = [];
+            this.shakeDur = 0;
+            this.shakeIntensity = 0;
+            this.toastTimer = 0;
+
+            const now = Date.now();
+            this.teleportTimer = now;
+            this.teleportFlash = 0;
+            this.lightsOutTimer = now;
+            this.lightsOutPhase = 'none';
+            this.darkPulseTimer = now;
+            this.darkPulseActive = false;
+            this.startTime = now;
+            this.flashRadius = FLASH_RADIUS;
+
+            this.gate.active = false;
+            this.gate.x = 0;
+            this.gate.y = 0;
+
+            this.player.x = canvasW / 2;
+            this.player.y = canvasH / 2;
+            this.player.angle = 0;
+        }
     }
 
-    function updateProximityHeart(distance) {
-        if (!audioCtx || !heartGain) return;
-        if (distance < PROXIMITY_DISTANCE) {
-            const intensity = (1 - distance / 200) * 1.5;
-            heartGain.gain.linearRampToValueAtTime(intensity, audioCtx.currentTime + 0.1);
-            if (!proximityHeartActive) {
-                proximityHeartActive = true;
-                heartInterval = setInterval(playHeartbeat, 700);
-                playHeartbeat();
+    // ════════════════════════════════════════
+    // 3. AudioManager
+    // ════════════════════════════════════════
+    class AudioManager {
+        constructor() {
+            this.ctx = null;
+            this.masterGain = null;
+            this.organGain = null;
+            this.heartGain = null;
+            this.whisperGain = null;
+            this.jumpscareGain = null;
+            this.started = false;
+        }
+
+        init() {
+            if (this.started) return;
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = 0.8;
+            this.masterGain.connect(this.ctx.destination);
+
+            this.organGain = this.ctx.createGain();
+            this.organGain.gain.value = 0.2;
+            this.organGain.connect(this.masterGain);
+
+            this.heartGain = this.ctx.createGain();
+            this.heartGain.gain.value = 0;
+            this.heartGain.connect(this.masterGain);
+
+            this.whisperGain = this.ctx.createGain();
+            this.whisperGain.gain.value = 0;
+            this.whisperGain.connect(this.masterGain);
+
+            this.jumpscareGain = this.ctx.createGain();
+            this.jumpscareGain.gain.value = 1.0;
+            this.jumpscareGain.connect(this.ctx.destination);
+
+            this.started = true;
+        }
+
+        get currentTime() {
+            return this.ctx ? this.ctx.currentTime : 0;
+        }
+
+        get sampleRate() {
+            return this.ctx ? this.ctx.sampleRate : 44100;
+        }
+
+        createOscillator() { return this.ctx.createOscillator(); }
+        createGain() { return this.ctx.createGain(); }
+        createBiquadFilter() { return this.ctx.createBiquadFilter(); }
+        createBuffer(channels, length, rate) { return this.ctx.createBuffer(channels, length, rate); }
+        createBufferSource() { return this.ctx.createBufferSource(); }
+        createStereoPanner() { return this.ctx.createStereoPanner(); }
+    }
+
+    // ════════════════════════════════════════
+    // 4. OrganSound
+    // ════════════════════════════════════════
+    class OrganSound {
+        constructor(audio) {
+            this.audio = audio;
+            this.timeout = null;
+            this.notes = [55, 58.27, 65.41, 73.42, 82.41, 87.31, 98, 110];
+        }
+
+        playNote(freq, dur) {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+            const osc = this.audio.createOscillator();
+            const gain = this.audio.createGain();
+            const filter = this.audio.createBiquadFilter();
+            osc.type = 'sawtooth';
+            osc.frequency.value = freq;
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+            filter.Q.value = 2;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3, now + 0.3);
+            gain.gain.linearRampToValueAtTime(0.15, now + dur * 0.6);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.audio.organGain);
+            osc.start(); osc.stop(now + dur);
+
+            const osc2 = this.audio.createOscillator();
+            const gain2 = this.audio.createGain();
+            osc2.type = 'sine'; osc2.frequency.value = freq * 1.5;
+            gain2.gain.setValueAtTime(0, now);
+            gain2.gain.linearRampToValueAtTime(0.1, now + 0.5);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + dur);
+            osc2.connect(gain2); gain2.connect(this.audio.organGain);
+            osc2.start(); osc2.stop(now + dur);
+        }
+
+        start(state) {
+            if (this.timeout) return;
+            const next = () => {
+                if (!state.started || state.gameOver) return;
+                this.playNote(this.notes[Math.floor(Math.random() * this.notes.length)], 2 + Math.random() * 4);
+                this.timeout = setTimeout(next, 2000 + Math.random() * 3000);
+            };
+            next();
+        }
+
+        stop() {
+            if (this.timeout) { clearTimeout(this.timeout); this.timeout = null; }
+        }
+    }
+
+    // ════════════════════════════════════════
+    // 5. HeartbeatSound
+    // ════════════════════════════════════════
+    class HeartbeatSound {
+        constructor(audio) {
+            this.audio = audio;
+            this.interval = null;
+            this.active = false;
+        }
+
+        play() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+            const o1 = this.audio.createOscillator(), g1 = this.audio.createGain();
+            o1.type = 'sine';
+            o1.frequency.setValueAtTime(65, now);
+            o1.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+            g1.gain.setValueAtTime(1.0, now);
+            g1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            o1.connect(g1); g1.connect(this.audio.heartGain);
+            o1.start(now); o1.stop(now + 0.3);
+
+            const o2 = this.audio.createOscillator(), g2 = this.audio.createGain();
+            o2.type = 'sine';
+            o2.frequency.setValueAtTime(55, now + 0.12);
+            o2.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+            g2.gain.setValueAtTime(0, now);
+            g2.gain.setValueAtTime(0.8, now + 0.12);
+            g2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            o2.connect(g2); g2.connect(this.audio.heartGain);
+            o2.start(now); o2.stop(now + 0.4);
+        }
+
+        updateProximity(distance) {
+            if (!this.audio.ctx || !this.audio.heartGain) return;
+            if (distance < PROXIMITY_DISTANCE) {
+                const intensity = (1 - distance / 200) * 1.5;
+                this.audio.heartGain.gain.linearRampToValueAtTime(intensity, this.audio.currentTime + 0.1);
+                if (!this.active) {
+                    this.active = true;
+                    this.interval = setInterval(() => this.play(), 700);
+                    this.play();
+                }
+            } else {
+                if (this.active) {
+                    this.active = false;
+                    this.audio.heartGain.gain.linearRampToValueAtTime(0, this.audio.currentTime + 0.3);
+                    if (this.interval) { clearInterval(this.interval); this.interval = null; }
+                }
             }
-        } else {
-            if (proximityHeartActive) {
-                proximityHeartActive = false;
-                heartGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                if (heartInterval) { clearInterval(heartInterval); heartInterval = null; }
+        }
+
+        stop() {
+            this.active = false;
+            if (this.interval) { clearInterval(this.interval); this.interval = null; }
+            if (this.audio.heartGain) {
+                this.audio.heartGain.gain.linearRampToValueAtTime(0, this.audio.currentTime + 0.1);
             }
         }
     }
 
-    // ─── 👻 FLÜSTERNDE STIMMEN (Dark Pulse) ───
-    function playWhisper() {
-        if (!audioCtx) return;
-        const t = audioCtx.currentTime;
-        const dur = 0.5 + Math.random() * 1.5;
-
-        // Noise-basierte Stimme durch schmalen Bandpass
-        const bufSize = audioCtx.sampleRate * dur;
-        const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) {
-            // Moduliertes Rauschen mit Formanten
-            const env = Math.sin(i / bufSize * Math.PI);
-            const tremolo = 0.5 + 0.5 * Math.sin(i / audioCtx.sampleRate * (8 + Math.random() * 15) * Math.PI * 2);
-            data[i] = (Math.random() * 2 - 1) * env * tremolo;
+    // ════════════════════════════════════════
+    // 6. WhisperSound
+    // ════════════════════════════════════════
+    class WhisperSound {
+        constructor(audio) {
+            this.audio = audio;
+            this.interval = null;
         }
-        const src = audioCtx.createBufferSource();
-        src.buffer = buf;
 
-        // Bandpass-Filter für stimmähnlichen Klang
-        const bp = audioCtx.createBiquadFilter();
-        bp.type = 'bandpass';
-        bp.frequency.value = 300 + Math.random() * 600;
-        bp.Q.value = 5 + Math.random() * 10;
+        play() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+            const dur = 0.5 + Math.random() * 1.5;
 
-        // Zweiter Filter für mehr "Stimme"
-        const bp2 = audioCtx.createBiquadFilter();
-        bp2.type = 'bandpass';
-        bp2.frequency.value = 1500 + Math.random() * 1500;
-        bp2.Q.value = 3;
-
-        const g = audioCtx.createGain();
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.4, t + 0.1);
-        g.gain.setValueAtTime(0.3, t + dur * 0.5);
-        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-
-        // Stereo-Pan für räumlichen Effekt
-        const pan = audioCtx.createStereoPanner();
-        pan.pan.value = (Math.random() - 0.5) * 1.8;
-
-        src.connect(bp);
-        bp.connect(bp2);
-        bp2.connect(g);
-        g.connect(pan);
-        pan.connect(whisperGain);
-        src.start(t); src.stop(t + dur);
-
-        // Gelegentlich tiefes Stöhnen dazu
-        if (Math.random() < 0.3) {
-            const moan = audioCtx.createOscillator();
-            const mg = audioCtx.createGain();
-            moan.type = 'sawtooth';
-            moan.frequency.setValueAtTime(80 + Math.random() * 40, t);
-            moan.frequency.linearRampToValueAtTime(60 + Math.random() * 30, t + dur);
-            const mf = audioCtx.createBiquadFilter();
-            mf.type = 'lowpass'; mf.frequency.value = 200;
-            mg.gain.setValueAtTime(0, t);
-            mg.gain.linearRampToValueAtTime(0.15, t + 0.2);
-            mg.gain.exponentialRampToValueAtTime(0.001, t + dur);
-            moan.connect(mf); mf.connect(mg); mg.connect(whisperGain);
-            moan.start(t); moan.stop(t + dur);
-        }
-    }
-
-    function startWhispers() {
-        if (whisperInterval) return;
-        if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.3);
-        playWhisper();
-        whisperInterval = setInterval(playWhisper, 400 + Math.random() * 600);
-    }
-
-    function stopWhispers() {
-        if (whisperInterval) { clearInterval(whisperInterval); whisperInterval = null; }
-        if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-    }
-
-    // ─── 🩸 BLUTSPUR SAMMEL-SOUNDS ───
-    function playBloodCollect() {
-        if (!audioCtx) return;
-        const t = audioCtx.currentTime;
-        
-        // 1. Tiefes Blut-Glucker (Hauptsound)
-        const bubble = audioCtx.createOscillator();
-        const bg = audioCtx.createGain();
-        const bf = audioCtx.createBiquadFilter();
-        bubble.type = 'sine';
-        bubble.frequency.setValueAtTime(180, t);
-        bubble.frequency.exponentialRampToValueAtTime(80, t + 0.3);
-        bf.type = 'lowpass';
-        bf.frequency.value = 400;
-        bg.gain.setValueAtTime(0.4, t);
-        bg.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        bubble.connect(bf);
-        bf.connect(bg);
-        bg.connect(masterGain);
-        bubble.start(t);
-        bubble.stop(t + 0.35);
-        
-        // 2. Hoher "Saug"-Ton
-        const hiss = audioCtx.createOscillator();
-        const hg = audioCtx.createGain();
-        hiss.type = 'sawtooth';
-        hiss.frequency.setValueAtTime(2000, t);
-        hiss.frequency.exponentialRampToValueAtTime(500, t + 0.15);
-        hg.gain.setValueAtTime(0.15, t);
-        hg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-        hiss.connect(hg);
-        hg.connect(masterGain);
-        hiss.start(t);
-        hiss.stop(t + 0.2);
-        
-        // 3. Zufriedenheitston (tiefes Summen)
-        const hum = audioCtx.createOscillator();
-        const humg = audioCtx.createGain();
-        hum.type = 'sine';
-        hum.frequency.value = 110;
-        humg.gain.setValueAtTime(0, t);
-        humg.gain.linearRampToValueAtTime(0.3, t + 0.1);
-        humg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-        hum.connect(humg);
-        humg.connect(masterGain);
-        hum.start(t);
-        hum.stop(t + 0.55);
-    }
-
-    // ─── 🚪 TOR ERSCHEINT SOUND ───
-    function playGateAppearsSound() {
-        if (!audioCtx) return;
-        const t = audioCtx.currentTime;
-        
-        // 1. Mystisches Öffnen
-        const gate = audioCtx.createOscillator();
-        const gg = audioCtx.createGain();
-        gate.type = 'sine';
-        gate.frequency.setValueAtTime(220, t);
-        gate.frequency.exponentialRampToValueAtTime(880, t + 1.5);
-        gg.gain.setValueAtTime(0, t);
-        gg.gain.linearRampToValueAtTime(0.5, t + 0.3);
-        gg.gain.exponentialRampToValueAtTime(0.001, t + 2);
-        
-        const gf = audioCtx.createBiquadFilter();
-        gf.type = 'lowpass';
-        gf.frequency.value = 1200;
-        
-        gate.connect(gf);
-        gf.connect(gg);
-        gg.connect(masterGain);
-        gate.start(t);
-        gate.stop(t + 2.1);
-        
-        // 2. Glockenklang
-        for (let i = 0; i < 3; i++) {
-            const bell = audioCtx.createOscillator();
-            const bg = audioCtx.createGain();
-            bell.type = 'sine';
-            bell.frequency.value = 660 * (i + 1);
-            bg.gain.setValueAtTime(0, t + i * 0.1);
-            bg.gain.linearRampToValueAtTime(0.2, t + i * 0.1 + 0.05);
-            bg.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 1);
-            bell.connect(bg);
-            bg.connect(masterGain);
-            bell.start(t + i * 0.1);
-            bell.stop(t + i * 0.1 + 1.1);
-        }
-    }
-
-    // ─── ⚠️ FAKE SPUR SAMMEL-SOUND ───
-    function playFakeCollect() {
-        if (!audioCtx) return;
-        const t = audioCtx.currentTime;
-        
-        // 1. Disharmonischer "Fehler"-Ton
-        const wrong = audioCtx.createOscillator();
-        const wg = audioCtx.createGain();
-        wrong.type = 'square';
-        wrong.frequency.setValueAtTime(300, t);
-        wrong.frequency.setValueAtTime(280, t + 0.1);
-        wrong.frequency.setValueAtTime(310, t + 0.2);
-        wrong.frequency.setValueAtTime(260, t + 0.3);
-        wg.gain.setValueAtTime(0.3, t);
-        wg.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-        wrong.connect(wg);
-        wg.connect(masterGain);
-        wrong.start(t);
-        wrong.stop(t + 0.45);
-        
-        // 2. Hohes Piepsen (Warnung)
-        const warn = audioCtx.createOscillator();
-        const warg = audioCtx.createGain();
-        warn.type = 'sine';
-        warn.frequency.setValueAtTime(1500, t);
-        warn.frequency.linearRampToValueAtTime(2000, t + 0.15);
-        warg.gain.setValueAtTime(0.2, t);
-        warg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-        warn.connect(warg);
-        warg.connect(masterGain);
-        warn.start(t);
-        warn.stop(t + 0.2);
-        
-        // 3. Tiefer "Nein"-Groll
-        const growl = audioCtx.createOscillator();
-        const growlg = audioCtx.createGain();
-        growl.type = 'sawtooth';
-        growl.frequency.setValueAtTime(100, t);
-        growl.frequency.linearRampToValueAtTime(60, t + 0.3);
-        const growlf = audioCtx.createBiquadFilter();
-        growlf.type = 'lowpass';
-        growlf.frequency.value = 200;
-        growlg.gain.setValueAtTime(0.25, t);
-        growlg.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-        growl.connect(growlf);
-        growlf.connect(growlg);
-        growlg.connect(masterGain);
-        growl.start(t);
-        growl.stop(t + 0.4);
-    }
-
-    // ─── 😇 GEFALLENENER ENGEL JUMPSCARE ───
-    function playJumpscare() {
-        if (!audioCtx) return;
-        
-        // VISUELLER JUMPSCARE - Gefallener Engel
-        const jumpEl = document.getElementById('jumpscare');
-        jumpEl.style.display = 'flex';
-        jumpEl.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
-        // Hektische Blitz-Sequenz: Dunkelheit → Blutrot → Weiß
-        let flashes = 0;
-        const flashInterval = setInterval(() => {
-            const phase = flashes % 5;
-            if (phase === 0) jumpEl.style.background = '#200000';
-            else if (phase === 1) jumpEl.style.background = '#000';
-            else if (phase === 2) jumpEl.style.background = '#ff0000';
-            else if (phase === 3) jumpEl.style.background = '#000';
-            else jumpEl.style.background = '#100000';
-            flashes++;
-            if (flashes > 15) {
-                clearInterval(flashInterval);
-                jumpEl.style.background = '#000';
-            }
-        }, 80);
-        
-        // Nach 2.5 Sekunden ausblenden
-        setTimeout(() => {
-            jumpEl.style.transition = 'opacity 0.5s';
-            jumpEl.style.opacity = '0';
-            setTimeout(() => {
-                jumpEl.classList.remove('active');
-                jumpEl.style.display = 'none';
-                jumpEl.style.opacity = '1';
-                jumpEl.style.transition = '';
-            }, 500);
-            document.body.style.overflow = '';
-        }, 2500);
-        
-        const t = audioCtx.currentTime;
-
-        // 1. HIMMLISCHER CHOR → VERDAMMNIS
-        // Beginnt als Engel, wird zu Dämon
-        const choirFreqs = [220, 277, 330, 440, 554, 659]; // Himmlisch
-        const fallenFreqs = [110, 116.5, 130.8, 138.6, 155.6, 164.8]; // Verdammnis
-        choirFreqs.forEach((f, i) => {
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.type = 'sine'; // Engel = Sine
-            o.frequency.setValueAtTime(f, t);
-            // Fallen: Frequenz sinkt, wird dissonant
-            o.frequency.linearRampToValueAtTime(fallenFreqs[i], t + 0.5);
-            o.type = 'sawtooth'; // Wird zu Dämon
-            g.gain.setValueAtTime(0.3, t);
-            g.gain.setValueAtTime(0.5, t + 0.5);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 3);
-            o.connect(g); g.connect(jumpscareGain);
-            o.start(t); o.stop(t + 3.1);
-        });
-
-        // 2. ENGELSSCHREI (Himmel → Hölle)
-        const scream = audioCtx.createOscillator();
-        const screamg = audioCtx.createGain();
-        scream.type = 'sine';
-        scream.frequency.setValueAtTime(880, t); // Hoher Engelston
-        scream.frequency.exponentialRampToValueAtTime(110, t + 1); // Fällt in die Tiefe
-        scream.type = 'sawtooth'; // Wird rau
-        screamg.gain.setValueAtTime(0.8, t);
-        screamg.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
-        scream.connect(screamg);
-        screamg.connect(jumpscareGain);
-        scream.start(t);
-        scream.stop(t + 1.6);
-
-        // 3. FLÜGEL-GERÄUSCHE (Rauschen)
-        for (let w = 0; w < 3; w++) {
-            const bufSize = audioCtx.sampleRate * 0.8;
-            const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const bufSize = this.audio.sampleRate * dur;
+            const buf = this.audio.createBuffer(1, bufSize, this.audio.sampleRate);
             const data = buf.getChannelData(0);
             for (let i = 0; i < bufSize; i++) {
-                const env = Math.exp(-i / (audioCtx.sampleRate * 0.3));
-                const flap = Math.sin(i / audioCtx.sampleRate * 30 * Math.PI * 2);
-                data[i] = (Math.random() * 2 - 1) * env * (0.3 + flap * 0.7);
+                const env = Math.sin(i / bufSize * Math.PI);
+                const tremolo = 0.5 + 0.5 * Math.sin(i / this.audio.sampleRate * (8 + Math.random() * 15) * Math.PI * 2);
+                data[i] = (Math.random() * 2 - 1) * env * tremolo;
             }
-            const src = audioCtx.createBufferSource();
+            const src = this.audio.createBufferSource();
             src.buffer = buf;
-            const wg = audioCtx.createGain();
-            wg.gain.value = 0.6;
-            src.connect(wg);
-            wg.connect(jumpscareGain);
-            src.start(t + w * 0.2);
+
+            const bp = this.audio.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.value = 300 + Math.random() * 600;
+            bp.Q.value = 5 + Math.random() * 10;
+
+            const bp2 = this.audio.createBiquadFilter();
+            bp2.type = 'bandpass';
+            bp2.frequency.value = 1500 + Math.random() * 1500;
+            bp2.Q.value = 3;
+
+            const gain = this.audio.createGain();
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.4, now + 0.1);
+            gain.gain.setValueAtTime(0.3, now + dur * 0.5);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+            const pan = this.audio.createStereoPanner();
+            pan.pan.value = (Math.random() - 0.5) * 1.8;
+
+            src.connect(bp);
+            bp.connect(bp2);
+            bp2.connect(gain);
+            gain.connect(pan);
+            pan.connect(this.audio.whisperGain);
+            src.start(now); src.stop(now + dur);
+
+            if (Math.random() < 0.3) {
+                const moan = this.audio.createOscillator();
+                const moanGain = this.audio.createGain();
+                moan.type = 'sawtooth';
+                moan.frequency.setValueAtTime(80 + Math.random() * 40, now);
+                moan.frequency.linearRampToValueAtTime(60 + Math.random() * 30, now + dur);
+                const moanFilter = this.audio.createBiquadFilter();
+                moanFilter.type = 'lowpass'; moanFilter.frequency.value = 200;
+                moanGain.gain.setValueAtTime(0, now);
+                moanGain.gain.linearRampToValueAtTime(0.15, now + 0.2);
+                moanGain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+                moan.connect(moanFilter); moanFilter.connect(moanGain); moanGain.connect(this.audio.whisperGain);
+                moan.start(now); moan.stop(now + dur);
+            }
         }
 
-        // 4. GLOCKE DES HIMMELS (Verdreckt)
-        const bell = audioCtx.createOscillator();
-        const bg = audioCtx.createGain();
-        bell.type = 'sine';
-        bell.frequency.setValueAtTime(880, t); // Hohe Glocke
-        bell.frequency.exponentialRampToValueAtTime(55, t + 2); // Wird tief
-        bg.gain.setValueAtTime(0.5, t);
-        bg.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
-        bell.connect(bg);
-        bg.connect(jumpscareGain);
-        bell.start(t);
-        bell.stop(t + 2.6);
+        start() {
+            if (this.interval) return;
+            if (this.audio.whisperGain) {
+                this.audio.whisperGain.gain.linearRampToValueAtTime(0.5, this.audio.currentTime + 0.3);
+            }
+            this.play();
+            this.interval = setInterval(() => this.play(), 400 + Math.random() * 600);
+        }
 
-        // 5. SUB-BASS: DER FALL
-        const fall = audioCtx.createOscillator();
-        const fallg = audioCtx.createGain();
-        fall.type = 'sine';
-        fall.frequency.setValueAtTime(200, t);
-        fall.frequency.exponentialRampToValueAtTime(20, t + 1); // Tiefer Fall
-        fallg.gain.setValueAtTime(1.0, t);
-        fallg.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
-        fall.connect(fallg);
-        fallg.connect(jumpscareGain);
-        fall.start(t);
-        fall.stop(t + 1.6);
+        stop() {
+            if (this.interval) { clearInterval(this.interval); this.interval = null; }
+            if (this.audio.whisperGain) {
+                this.audio.whisperGain.gain.linearRampToValueAtTime(0, this.audio.currentTime + 0.5);
+            }
+        }
     }
 
-    function stopAllAudio() {
-        stopOrgan(); stopWhispers();
-        if (heartInterval) { clearInterval(heartInterval); heartInterval = null; }
-        proximityHeartActive = false;
-        if (heartGain) heartGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-        if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-    }
+    // ════════════════════════════════════════
+    // 7. SFX
+    // ════════════════════════════════════════
+    const SFX = {
+        audio: null,
 
-    // ─── PARTICLES ───
-    function spawnParticles(x, y, color, count = 8) {
-        for (let i = 0; i < count; i++) {
-            const a = Math.random() * Math.PI * 2;
-            const spd = 1 + Math.random() * 3;
-            G.particles.push({
-                x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
-                life: 1, decay: 0.02 + Math.random() * 0.03,
-                size: 2 + Math.random() * 4, color
+        init(audio) { this.audio = audio; },
+
+        bloodCollect() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+
+            const bubble = this.audio.createOscillator();
+            const bubbleGain = this.audio.createGain();
+            const bubbleFilter = this.audio.createBiquadFilter();
+            bubble.type = 'sine';
+            bubble.frequency.setValueAtTime(180, now);
+            bubble.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+            bubbleFilter.type = 'lowpass';
+            bubbleFilter.frequency.value = 400;
+            bubbleGain.gain.setValueAtTime(0.4, now);
+            bubbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            bubble.connect(bubbleFilter);
+            bubbleFilter.connect(bubbleGain);
+            bubbleGain.connect(this.audio.masterGain);
+            bubble.start(now); bubble.stop(now + 0.35);
+
+            const hiss = this.audio.createOscillator();
+            const hissGain = this.audio.createGain();
+            hiss.type = 'sawtooth';
+            hiss.frequency.setValueAtTime(2000, now);
+            hiss.frequency.exponentialRampToValueAtTime(500, now + 0.15);
+            hissGain.gain.setValueAtTime(0.15, now);
+            hissGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            hiss.connect(hissGain);
+            hissGain.connect(this.audio.masterGain);
+            hiss.start(now); hiss.stop(now + 0.2);
+
+            const hum = this.audio.createOscillator();
+            const humGain = this.audio.createGain();
+            hum.type = 'sine';
+            hum.frequency.value = 110;
+            humGain.gain.setValueAtTime(0, now);
+            humGain.gain.linearRampToValueAtTime(0.3, now + 0.1);
+            humGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            hum.connect(humGain);
+            humGain.connect(this.audio.masterGain);
+            hum.start(now); hum.stop(now + 0.55);
+        },
+
+        fakeCollect() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+
+            const wrong = this.audio.createOscillator();
+            const wrongGain = this.audio.createGain();
+            wrong.type = 'square';
+            wrong.frequency.setValueAtTime(300, now);
+            wrong.frequency.setValueAtTime(280, now + 0.1);
+            wrong.frequency.setValueAtTime(310, now + 0.2);
+            wrong.frequency.setValueAtTime(260, now + 0.3);
+            wrongGain.gain.setValueAtTime(0.3, now);
+            wrongGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            wrong.connect(wrongGain);
+            wrongGain.connect(this.audio.masterGain);
+            wrong.start(now); wrong.stop(now + 0.45);
+
+            const warn = this.audio.createOscillator();
+            const warnGain = this.audio.createGain();
+            warn.type = 'sine';
+            warn.frequency.setValueAtTime(1500, now);
+            warn.frequency.linearRampToValueAtTime(2000, now + 0.15);
+            warnGain.gain.setValueAtTime(0.2, now);
+            warnGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            warn.connect(warnGain);
+            warnGain.connect(this.audio.masterGain);
+            warn.start(now); warn.stop(now + 0.2);
+
+            const growl = this.audio.createOscillator();
+            const growlGain = this.audio.createGain();
+            growl.type = 'sawtooth';
+            growl.frequency.setValueAtTime(100, now);
+            growl.frequency.linearRampToValueAtTime(60, now + 0.3);
+            const growlFilter = this.audio.createBiquadFilter();
+            growlFilter.type = 'lowpass';
+            growlFilter.frequency.value = 200;
+            growlGain.gain.setValueAtTime(0.25, now);
+            growlGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            growl.connect(growlFilter);
+            growlFilter.connect(growlGain);
+            growlGain.connect(this.audio.masterGain);
+            growl.start(now); growl.stop(now + 0.4);
+        },
+
+        gateAppears() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+
+            const gateOsc = this.audio.createOscillator();
+            const gateGain = this.audio.createGain();
+            gateOsc.type = 'sine';
+            gateOsc.frequency.setValueAtTime(220, now);
+            gateOsc.frequency.exponentialRampToValueAtTime(880, now + 1.5);
+            gateGain.gain.setValueAtTime(0, now);
+            gateGain.gain.linearRampToValueAtTime(0.5, now + 0.3);
+            gateGain.gain.exponentialRampToValueAtTime(0.001, now + 2);
+
+            const gateFilter = this.audio.createBiquadFilter();
+            gateFilter.type = 'lowpass';
+            gateFilter.frequency.value = 1200;
+
+            gateOsc.connect(gateFilter);
+            gateFilter.connect(gateGain);
+            gateGain.connect(this.audio.masterGain);
+            gateOsc.start(now); gateOsc.stop(now + 2.1);
+
+            for (let i = 0; i < 3; i++) {
+                const bell = this.audio.createOscillator();
+                const bellGain = this.audio.createGain();
+                bell.type = 'sine';
+                bell.frequency.value = 660 * (i + 1);
+                bellGain.gain.setValueAtTime(0, now + i * 0.1);
+                bellGain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.05);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 1);
+                bell.connect(bellGain);
+                bellGain.connect(this.audio.masterGain);
+                bell.start(now + i * 0.1); bell.stop(now + i * 0.1 + 1.1);
+            }
+        }
+    };
+
+    // ════════════════════════════════════════
+    // 8. JumpscareSystem
+    // ════════════════════════════════════════
+    class JumpscareSystem {
+        constructor(audio) {
+            this.audio = audio;
+        }
+
+        trigger() {
+            this.showVisual();
+            this.playAudio();
+        }
+
+        showVisual() {
+            const jumpEl = document.getElementById('jumpscare');
+            jumpEl.style.display = 'flex';
+            jumpEl.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            let flashes = 0;
+            const flashInterval = setInterval(() => {
+                const phase = flashes % 5;
+                if (phase === 0) jumpEl.style.background = '#200000';
+                else if (phase === 1) jumpEl.style.background = '#000';
+                else if (phase === 2) jumpEl.style.background = '#ff0000';
+                else if (phase === 3) jumpEl.style.background = '#000';
+                else jumpEl.style.background = '#100000';
+                flashes++;
+                if (flashes > 15) {
+                    clearInterval(flashInterval);
+                    jumpEl.style.background = '#000';
+                }
+            }, 80);
+
+            setTimeout(() => {
+                jumpEl.style.transition = 'opacity 0.5s';
+                jumpEl.style.opacity = '0';
+                setTimeout(() => {
+                    jumpEl.classList.remove('active');
+                    jumpEl.style.display = 'none';
+                    jumpEl.style.opacity = '1';
+                    jumpEl.style.transition = '';
+                }, 500);
+                document.body.style.overflow = '';
+            }, 2500);
+        }
+
+        playAudio() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+
+            const choirFreqs = [220, 277, 330, 440, 554, 659];
+            const fallenFreqs = [110, 116.5, 130.8, 138.6, 155.6, 164.8];
+            choirFreqs.forEach((freq, idx) => {
+                const osc = this.audio.createOscillator();
+                const gain = this.audio.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.linearRampToValueAtTime(fallenFreqs[idx], now + 0.5);
+                osc.type = 'sawtooth';
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.setValueAtTime(0.5, now + 0.5);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+                osc.connect(gain); gain.connect(this.audio.jumpscareGain);
+                osc.start(now); osc.stop(now + 3.1);
             });
+
+            const scream = this.audio.createOscillator();
+            const screamGain = this.audio.createGain();
+            scream.type = 'sine';
+            scream.frequency.setValueAtTime(880, now);
+            scream.frequency.exponentialRampToValueAtTime(110, now + 1);
+            scream.type = 'sawtooth';
+            screamGain.gain.setValueAtTime(0.8, now);
+            screamGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+            scream.connect(screamGain);
+            screamGain.connect(this.audio.jumpscareGain);
+            scream.start(now); scream.stop(now + 1.6);
+
+            for (let w = 0; w < 3; w++) {
+                const bufSize = this.audio.sampleRate * 0.8;
+                const buf = this.audio.createBuffer(1, bufSize, this.audio.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) {
+                    const env = Math.exp(-i / (this.audio.sampleRate * 0.3));
+                    const flap = Math.sin(i / this.audio.sampleRate * 30 * Math.PI * 2);
+                    data[i] = (Math.random() * 2 - 1) * env * (0.3 + flap * 0.7);
+                }
+                const src = this.audio.createBufferSource();
+                src.buffer = buf;
+                const wingGain = this.audio.createGain();
+                wingGain.gain.value = 0.6;
+                src.connect(wingGain);
+                wingGain.connect(this.audio.jumpscareGain);
+                src.start(now + w * 0.2);
+            }
+
+            const bell = this.audio.createOscillator();
+            const bellGain = this.audio.createGain();
+            bell.type = 'sine';
+            bell.frequency.setValueAtTime(880, now);
+            bell.frequency.exponentialRampToValueAtTime(55, now + 2);
+            bellGain.gain.setValueAtTime(0.5, now);
+            bellGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+            bell.connect(bellGain);
+            bellGain.connect(this.audio.jumpscareGain);
+            bell.start(now); bell.stop(now + 2.6);
+
+            const fall = this.audio.createOscillator();
+            const fallGain = this.audio.createGain();
+            fall.type = 'sine';
+            fall.frequency.setValueAtTime(200, now);
+            fall.frequency.exponentialRampToValueAtTime(20, now + 1);
+            fallGain.gain.setValueAtTime(1.0, now);
+            fallGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+            fall.connect(fallGain);
+            fallGain.connect(this.audio.jumpscareGain);
+            fall.start(now); fall.stop(now + 1.6);
         }
     }
 
-    function updateParticles() {
-        for (let i = G.particles.length - 1; i >= 0; i--) {
-            const p = G.particles[i];
-            p.x += p.vx; p.y += p.vy;
-            p.life -= p.decay;
-            if (p.life <= 0) G.particles.splice(i, 1);
+    // ════════════════════════════════════════
+    // 9. InputManager
+    // ════════════════════════════════════════
+    class InputManager {
+        constructor() {
+            this.pressed = {};
+        }
+
+        init(onRestart) {
+            document.addEventListener('keydown', e => {
+                this.pressed[e.key.toLowerCase()] = true;
+                if (e.key.toLowerCase() === 'r') onRestart();
+            });
+            document.addEventListener('keyup', e => { this.pressed[e.key.toLowerCase()] = false; });
+        }
+
+        isDown(key) {
+            return !!this.pressed[key];
         }
     }
 
-    function renderParticles() {
-        G.particles.forEach(p => {
-            ctx.globalAlpha = p.life;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size * p.life, 0, TWO_PI);
-            ctx.fill();
-        });
-        ctx.globalAlpha = 1;
-    }
+    // ════════════════════════════════════════
+    // 10. ParticleSystem
+    // ════════════════════════════════════════
+    class ParticleSystem {
+        constructor(state) {
+            this.state = state;
+        }
 
-    // ─── SCREEN SHAKE ───
-    function shake(intensity = 5, duration = 200) {
-        G.shakeDur = duration;
-        G.shakeIntensity = intensity;
-    }
-
-    // ─── TOAST (temporary message) ───
-    function showToast(text, color = '#ff6600', duration = 1500) {
-        const el = document.getElementById('toast');
-        el.innerHTML = text;
-        el.style.color = color;
-        el.style.textShadow = `0 0 15px ${color}`;
-        el.style.opacity = 1;
-        G.toastTimer = duration;
-    }
-
-    function showMessage(text, color = '#ff0000') {
-        const el = document.getElementById('message');
-        el.innerHTML = text;
-        el.style.color = color;
-        el.style.textShadow = `0 0 30px ${color}`;
-        el.style.display = 'block';
-        el.style.opacity = 1;
-    }
-
-    // ─── INIT ───
-    function init() {
-        G.found = 0;
-        G.gameOver = false;
-        G.won = false;
-        G.particles = [];
-        G.shakeDur = 0;
-        G.toastTimer = 0;
-
-        const now = Date.now();
-        G.teleportTimer = now;
-        G.teleportFlash = 0;
-        G.lightsOutTimer = now;
-        G.lightsOutPhase = 'none';
-        G.darkPulseTimer = now;
-        G.darkPulseActive = false;
-        G.startTime = now;
-
-        // Reset gate
-        G.gate.active = false;
-        G.gate.x = 0;
-        G.gate.y = 0;
-
-        // Player center
-        G.player.x = canvas.width / 2;
-        G.player.y = canvas.height / 2;
-        G.player.angle = 0;
-
-        // Spawn real tracks (9-12) in clusters
-        G.tracks = [];
-        const total = 14 + Math.floor(Math.random() * 5);
-        let created = 0;
-
-        while (created < total) {
-            const cx = 80 + Math.random() * (canvas.width - 160);
-            const cy = 80 + Math.random() * (canvas.height - 160);
-            if (Math.hypot(cx - G.player.x, cy - G.player.y) < TRACK_SPAWN_MIN_DISTANCE) continue;
-
-            const cluster = Math.random() < 0.6 ? (Math.random() < 0.5 ? 2 : 3) : 1;
-            const actual = Math.min(cluster, total - created);
-
-            for (let i = 0; i < actual; i++) {
-                const a = Math.random() * Math.PI * 2;
-                const d = i === 0 ? 0 : 20 + Math.random() * 35;
-                const sizeMul = [0.6, 1, 1, 1.3][Math.floor(Math.random() * 4)];
-                G.tracks.push({
-                    x: cx + Math.cos(a) * d,
-                    y: cy + Math.sin(a) * d,
-                    size: (12 + Math.random() * 18) * sizeMul,
-                    shade: Math.random(), // 0=dark, 1=bright
-                    isFake: false,
-                    found: false
+        spawn(x, y, color, count = 8) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * TWO_PI;
+                const spd = 1 + Math.random() * 3;
+                this.state.particles.push({
+                    x, y, vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
+                    life: 1, decay: 0.02 + Math.random() * 0.03,
+                    size: 2 + Math.random() * 4, color
                 });
-                created++;
             }
         }
-        G.total = created;
 
-        // Fake tracks from monster (3-5)
-        const fakes = 3 + Math.floor(Math.random() * 3);
-        for (let i = 0; i < fakes; i++) {
-            let fx, fy;
-            do {
-                fx = 60 + Math.random() * (canvas.width - 120);
-                fy = 60 + Math.random() * (canvas.height - 120);
-            } while (Math.hypot(fx - G.player.x, fy - G.player.y) < FAKE_TRACK_SPAWN_MIN_DISTANCE);
-            G.tracks.push({
-                x: fx, y: fy,
-                size: 10 + Math.random() * 16,
-                shade: Math.random(),
-                isFake: true,
-                found: false
-            });
+        update() {
+            for (let i = this.state.particles.length - 1; i >= 0; i--) {
+                const p = this.state.particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) this.state.particles.splice(i, 1);
+            }
         }
 
-        // Monster far from player
-        do {
-            G.monster.x = Math.random() * canvas.width;
-            G.monster.y = Math.random() * canvas.height;
-        } while (Math.hypot(G.monster.x - G.player.x, G.monster.y - G.player.y) < SPAWN_MIN_DISTANCE);
-
-        document.getElementById('score').textContent = '0';
-        document.getElementById('total').textContent = G.total;
-        document.getElementById('remaining').textContent = G.total;
-        document.getElementById('message').style.display = 'none';
-        document.getElementById('toast').style.opacity = 0;
-        if (audioStarted) { stopAllAudio(); startOrgan(); }
+        render(ctx) {
+            this.state.particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, TWO_PI);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
     }
 
-    // ─── INPUT ───
-    const keys = {};
-    document.addEventListener('keydown', e => {
-        keys[e.key.toLowerCase()] = true;
-        if (e.key.toLowerCase() === 'r' && G.gameOver) init();
-    });
-    document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+    // ════════════════════════════════════════
+    // 11. UI
+    // ════════════════════════════════════════
+    const UI = {
+        shake(state, intensity = 5, duration = 200) {
+            state.shakeDur = duration;
+            state.shakeIntensity = intensity;
+        },
 
-    // ─── UPDATE ───
-    function update(dt) {
-        if (G.gameOver) return;
-        const now = Date.now();
+        showToast(state, text, color = '#ff6600', duration = 1500) {
+            const el = document.getElementById('toast');
+            el.innerHTML = text;
+            el.style.color = color;
+            el.style.textShadow = `0 0 15px ${color}`;
+            el.style.opacity = 1;
+            state.toastTimer = duration;
+        },
 
-        // Toast fade
-        if (G.toastTimer > 0) {
-            G.toastTimer -= dt;
-            if (G.toastTimer <= 0) {
-                document.getElementById('toast').style.opacity = 0;
+        showMessage(text, color = '#ff0000') {
+            const el = document.getElementById('message');
+            el.innerHTML = text;
+            el.style.color = color;
+            el.style.textShadow = `0 0 30px ${color}`;
+            el.style.display = 'block';
+            el.style.opacity = 1;
+        },
+
+        updateShake(state, dt) {
+            if (state.shakeDur > 0) {
+                state.shakeDur -= dt;
+                state.shakeX = (Math.random() - 0.5) * state.shakeIntensity * 2;
+                state.shakeY = (Math.random() - 0.5) * state.shakeIntensity * 2;
+            } else {
+                state.shakeX = 0; state.shakeY = 0;
             }
-        }
+        },
 
-        // Screen shake
-        if (G.shakeDur > 0) {
-            G.shakeDur -= dt;
-            G.shakeX = (Math.random() - 0.5) * G.shakeIntensity * 2;
-            G.shakeY = (Math.random() - 0.5) * G.shakeIntensity * 2;
-        } else {
-            G.shakeX = 0; G.shakeY = 0;
-        }
-
-        // Player movement
-        let dx = 0, dy = 0;
-        if (keys['w'] || keys['arrowup']) dy = -1;
-        if (keys['s'] || keys['arrowdown']) dy = 1;
-        if (keys['a'] || keys['arrowleft']) dx = -1;
-        if (keys['d'] || keys['arrowright']) dx = 1;
-
-        const speedMod = G.darkPulseActive ? 0.65 : 1;
-        if (dx !== 0 || dy !== 0) {
-            const len = Math.hypot(dx, dy);
-            dx /= len; dy /= len;
-            G.player.x = Math.max(15, Math.min(canvas.width - 15, G.player.x + dx * G.player.speed * speedMod));
-            G.player.y = Math.max(15, Math.min(canvas.height - 15, G.player.y + dy * G.player.speed * speedMod));
-            G.player.angle = Math.atan2(dy, dx);
-        }
-
-        // Monster chase
-        const mx = G.player.x - G.monster.x;
-        const my = G.player.y - G.monster.y;
-        const md = Math.hypot(mx, my);
-        const monsterMod = G.darkPulseActive ? 2.0 : 1;
-        if (md > 0) {
-            G.monster.x += (mx / md) * G.monster.speed * monsterMod;
-            G.monster.y += (my / md) * G.monster.speed * monsterMod;
-        }
-
-        // ── ABILITY: Divine Prediction (teleport in front of player every 8s) ──
-        if (now - G.teleportTimer > G.teleportCooldown) {
-            const dist = G.flashRadius * 0.8;
-            G.monster.x = Math.max(30, Math.min(canvas.width - 30,
-                G.player.x + Math.cos(G.player.angle) * dist));
-            G.monster.y = Math.max(30, Math.min(canvas.height - 30,
-                G.player.y + Math.sin(G.player.angle) * dist));
-            G.teleportTimer = now;
-            G.teleportFlash = 800;
-        }
-        if (G.teleportFlash > 0) G.teleportFlash -= dt;
-
-        // ── ABILITY: Lights Out (every 13s: 3s flicker + 2s dark) ──
-        if (G.lightsOutPhase === 'none' && now - G.lightsOutTimer > LIGHTS_OUT_INTERVAL) {
-            G.lightsOutPhase = 'flicker';
-            G.lightsOutStart = now;
-        }
-        if (G.lightsOutPhase === 'flicker' && now - G.lightsOutStart > 3000) {
-            G.lightsOutPhase = 'dark';
-            G.lightsOutStart = now;
-            shake(4, 500);
-        }
-        if (G.lightsOutPhase === 'dark' && now - G.lightsOutStart > 2000) {
-            G.lightsOutPhase = 'none';
-            G.lightsOutTimer = now;
-        }
-
-        // ── ABILITY: Dark Pulse Realm (every 20s for 4s) ──
-        if (!G.darkPulseActive && now - G.darkPulseTimer > DARK_PULSE_INTERVAL) {
-            G.darkPulseActive = true;
-            G.darkPulseTimer = now;
-            shake(6, 400);
-            startWhispers();
-        }
-        if (G.darkPulseActive && now - G.darkPulseTimer > DARK_PULSE_DURATION) {
-            G.darkPulseActive = false;
-            G.darkPulseTimer = now;
-            stopWhispers();
-        }
-
-        // Catch player
-        // Herzschlag basierend auf Monster-Nähe
-        updateProximityHeart(md);
-
-        if (md < CATCH_DISTANCE) {
-            G.gameOver = true;
-            G.won = false;
-            shake(15, 500);
-            stopAllAudio();
-            playJumpscare();
-            showMessage('💀 DU WURDEST ERWISCHT!<br><small>R = Neustart</small>');
-        }
-
-        // Check Gate collision (Sieg wenn Spieler das Tor erreicht)
-        if (G.gate.active) {
-            const gateDist = Math.hypot(G.player.x - G.gate.x, G.player.y - G.gate.y);
-            if (gateDist < G.gate.radius) {
-                G.gameOver = true;
-                G.won = true;
-                const secs = Math.floor((Date.now() - G.startTime) / 1000);
-                stopAllAudio();
-                showMessage(`🏆 ENTKOMMEN DURCH DAS TOR!<br><small>${secs}s — R = Neustart</small>`, '#00ff00');
+        updateToast(state, dt) {
+            if (state.toastTimer > 0) {
+                state.toastTimer -= dt;
+                if (state.toastTimer <= 0) {
+                    document.getElementById('toast').style.opacity = 0;
+                }
             }
+        },
+
+        updateHUD(state) {
+            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+            document.getElementById('timer').textContent = `Zeit: ${elapsed}s`;
         }
+    };
 
-        // Collect tracks
-        G.tracks.forEach(track => {
-            if (track.found) return;
-            const d = Math.hypot(track.x - G.player.x, track.y - G.player.y);
-            if (d > COLLECT_DISTANCE) return;
+    // ════════════════════════════════════════
+    // 12. Spawner
+    // ════════════════════════════════════════
+    const Spawner = {
+        spawnTracks(state, canvasW, canvasH) {
+            state.tracks = [];
+            const total = 14 + Math.floor(Math.random() * 5);
+            let created = 0;
 
-            // Must be in flashlight cone
-            const a = Math.atan2(track.y - G.player.y, track.x - G.player.x);
-            let diff = a - G.player.angle;
-            while (diff > Math.PI) diff -= TWO_PI;
-            while (diff < -Math.PI) diff += TWO_PI;
-            if (Math.abs(diff) > G.flashCone / 2) return;
+            while (created < total) {
+                const cx = 80 + Math.random() * (canvasW - 160);
+                const cy = 80 + Math.random() * (canvasH - 160);
+                if (Math.hypot(cx - state.player.x, cy - state.player.y) < TRACK_SPAWN_MIN_DISTANCE) continue;
 
-            track.found = true;
+                const cluster = Math.random() < 0.6 ? (Math.random() < 0.5 ? 2 : 3) : 1;
+                const actual = Math.min(cluster, total - created);
 
-            if (track.isFake) {
-                // Fake! Subtract point + warning + spawn new real track
-                G.found = Math.max(0, G.found - 1);
-                shake(6, 250);
-                spawnParticles(track.x, track.y, '#00ff00', 12);
-                showToast('⚠️ FALSCHE SPUR! -1', '#ff6600', 1500);
-                playFakeCollect(); // Warn-Sound
-                
-                // Neue echte Blutspur spawnen (garantiert genug Spuren zum Gewinnen)
-                let newX, newY, attempts = 0;
-                do {
-                    newX = 60 + Math.random() * (canvas.width - 120);
-                    newY = 60 + Math.random() * (canvas.height - 120);
-                    attempts++;
-                } while (
-                    (Math.hypot(newX - G.player.x, newY - G.player.y) < 100 ||
-                     Math.hypot(newX - G.monster.x, newY - G.monster.y) < 80) &&
-                    attempts < 30
-                );
-                
-                if (attempts < 30) {
-                    G.tracks.push({
-                        x: newX, y: newY,
-                        size: 12 + Math.random() * 16,
+                for (let i = 0; i < actual; i++) {
+                    const angle = Math.random() * TWO_PI;
+                    const dist = i === 0 ? 0 : 20 + Math.random() * 35;
+                    const sizeMul = [0.6, 1, 1, 1.3][Math.floor(Math.random() * 4)];
+                    state.tracks.push({
+                        x: cx + Math.cos(angle) * dist,
+                        y: cy + Math.sin(angle) * dist,
+                        size: (12 + Math.random() * 18) * sizeMul,
                         shade: Math.random(),
                         isFake: false,
                         found: false
                     });
-                    // NICHT G.total erhöhen - die neue Spur ist Ersatz
+                    created++;
                 }
-            } else {
-                // Real track
-                G.found++;
-                spawnParticles(track.x, track.y, '#ff0000', 10);
-                playBloodCollect(); // Blut-Sammel-Sound
             }
-            
-            // Score und Verbleibend aktualisieren
-            document.getElementById('score').textContent = G.found;
-            const remaining = G.tracks.filter(t => !t.found && !t.isFake).length;
-            document.getElementById('remaining').textContent = remaining;
+            state.total = created;
 
-            // Tor erscheint wenn: alle gefunden ODER keine echten mehr da
-            if ((G.found >= G.total || remaining === 0) && !G.gate.active) {
-                G.gate.active = true;
-                // Tor an zufälliger Position spawnen (nicht zu nah am Monster oder Spieler)
-                let gateX, gateY;
-                let attempts = 0;
+            const fakes = 3 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < fakes; i++) {
+                let fx, fy;
                 do {
-                    gateX = 100 + Math.random() * (canvas.width - 200);
-                    gateY = 100 + Math.random() * (canvas.height - 200);
-                    attempts++;
-                } while ((Math.hypot(gateX - G.player.x, gateY - G.player.y) < 200 ||
-                         Math.hypot(gateX - G.monster.x, gateY - G.monster.y) < 300) &&
-                            attempts < 50);
-                    G.gate.x = gateX;
-                    G.gate.y = gateY;
-                    shake(8, 600);
-                    showToast('🚪 DAS TOR IST OFFEN! FLIEHE!', '#ff00ff', 3000);
-                    playGateAppearsSound();
-                }
-        });
+                    fx = 60 + Math.random() * (canvasW - 120);
+                    fy = 60 + Math.random() * (canvasH - 120);
+                } while (Math.hypot(fx - state.player.x, fy - state.player.y) < FAKE_TRACK_SPAWN_MIN_DISTANCE);
+                state.tracks.push({
+                    x: fx, y: fy,
+                    size: 10 + Math.random() * 16,
+                    shade: Math.random(),
+                    isFake: true,
+                    found: false
+                });
+            }
+        },
 
-        updateParticles();
+        spawnMonster(state, canvasW, canvasH) {
+            do {
+                state.monster.x = Math.random() * canvasW;
+                state.monster.y = Math.random() * canvasH;
+            } while (Math.hypot(state.monster.x - state.player.x, state.monster.y - state.player.y) < SPAWN_MIN_DISTANCE);
+        },
+
+        spawnReplacementTrack(state, canvasW, canvasH) {
+            let newX, newY, attempts = 0;
+            do {
+                newX = 60 + Math.random() * (canvasW - 120);
+                newY = 60 + Math.random() * (canvasH - 120);
+                attempts++;
+            } while (
+                (Math.hypot(newX - state.player.x, newY - state.player.y) < 100 ||
+                 Math.hypot(newX - state.monster.x, newY - state.monster.y) < 80) &&
+                attempts < 30
+            );
+
+            if (attempts < 30) {
+                state.tracks.push({
+                    x: newX, y: newY,
+                    size: 12 + Math.random() * 16,
+                    shade: Math.random(),
+                    isFake: false,
+                    found: false
+                });
+            }
+        },
+
+        spawnGate(state, canvasW, canvasH) {
+            state.gate.active = true;
+            let gateX, gateY, attempts = 0;
+            do {
+                gateX = 100 + Math.random() * (canvasW - 200);
+                gateY = 100 + Math.random() * (canvasH - 200);
+                attempts++;
+            } while (
+                (Math.hypot(gateX - state.player.x, gateY - state.player.y) < 200 ||
+                 Math.hypot(gateX - state.monster.x, gateY - state.monster.y) < 300) &&
+                attempts < 50
+            );
+            state.gate.x = gateX;
+            state.gate.y = gateY;
+        }
+    };
+
+    // ════════════════════════════════════════
+    // 13. AbilitySystem
+    // ════════════════════════════════════════
+    class AbilitySystem {
+        constructor(state, whisper, canvas) {
+            this.state = state;
+            this.whisper = whisper;
+            this.canvas = canvas;
+        }
+
+        update(dt) {
+            const now = Date.now();
+            this.updateTeleport(now, dt);
+            this.updateLightsOut(now);
+            this.updateDarkPulse(now);
+        }
+
+        updateTeleport(now, dt) {
+            const s = this.state;
+            if (now - s.teleportTimer > s.teleportCooldown) {
+                const dist = s.flashRadius * 0.8;
+                s.monster.x = Math.max(30, Math.min(this.canvas.width - 30,
+                    s.player.x + Math.cos(s.player.angle) * dist));
+                s.monster.y = Math.max(30, Math.min(this.canvas.height - 30,
+                    s.player.y + Math.sin(s.player.angle) * dist));
+                s.teleportTimer = now;
+                s.teleportFlash = 800;
+            }
+            if (s.teleportFlash > 0) s.teleportFlash -= dt;
+        }
+
+        updateLightsOut(now) {
+            const s = this.state;
+            if (s.lightsOutPhase === 'none' && now - s.lightsOutTimer > LIGHTS_OUT_INTERVAL) {
+                s.lightsOutPhase = 'flicker';
+                s.lightsOutStart = now;
+            }
+            if (s.lightsOutPhase === 'flicker' && now - s.lightsOutStart > LIGHTS_OUT_FLICKER) {
+                s.lightsOutPhase = 'dark';
+                s.lightsOutStart = now;
+                UI.shake(s, 4, 500);
+            }
+            if (s.lightsOutPhase === 'dark' && now - s.lightsOutStart > LIGHTS_OUT_DARK) {
+                s.lightsOutPhase = 'none';
+                s.lightsOutTimer = now;
+            }
+        }
+
+        updateDarkPulse(now) {
+            const s = this.state;
+            if (!s.darkPulseActive && now - s.darkPulseTimer > DARK_PULSE_INTERVAL) {
+                s.darkPulseActive = true;
+                s.darkPulseTimer = now;
+                UI.shake(s, 6, 400);
+                this.whisper.start();
+            }
+            if (s.darkPulseActive && now - s.darkPulseTimer > DARK_PULSE_DURATION) {
+                s.darkPulseActive = false;
+                s.darkPulseTimer = now;
+                this.whisper.stop();
+            }
+        }
     }
 
-    // ─── RENDER ───
-    function render() {
-        ctx.save();
-        ctx.translate(G.shakeX, G.shakeY);
+    // ════════════════════════════════════════
+    // 14. CollisionSystem
+    // ════════════════════════════════════════
+    class CollisionSystem {
+        constructor(state, particles, jumpscare, heartbeat, canvas) {
+            this.state = state;
+            this.particles = particles;
+            this.jumpscare = jumpscare;
+            this.heartbeat = heartbeat;
+            this.canvas = canvas;
+        }
 
-        // Clear
-        ctx.fillStyle = '#050505';
-        ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
+        check() {
+            const s = this.state;
+            const monsterDist = Math.hypot(s.player.x - s.monster.x, s.player.y - s.monster.y);
 
-        // ── Draw blood tracks ──
-        G.tracks.forEach(track => {
-            if (track.found) return;
-            const d = Math.hypot(track.x - G.player.x, track.y - G.player.y);
-            if (d > G.flashRadius) return;
+            this.heartbeat.updateProximity(monsterDist);
+            this.checkMonsterCatch(monsterDist);
+            if (!s.gameOver) this.checkGate();
+            if (!s.gameOver) this.collectTracks();
+        }
 
-            const s = track.shade;
-            const r = Math.floor(100 + s * 120);
-            const g = Math.floor(20 + s * 20);
-            const b = Math.floor(20 + s * 15);
-            const alpha = (1 - d / G.flashRadius) * (0.5 + s * 0.5);
-
-            // Blood puddle - runder aber leicht unregelmäßig
-            ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-            ctx.beginPath();
-            const steps = 12;
-            for (let i = 0; i < steps; i++) {
-                const angle = (i / steps) * Math.PI * 2;
-                const wobble = 0.85 + Math.sin(i * 1.8 + track.x * 0.1) * 0.15;
-                const px = track.x + Math.cos(angle) * track.size * wobble;
-                const py = track.y + Math.sin(angle) * track.size * wobble;
-                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        checkMonsterCatch(dist) {
+            const s = this.state;
+            if (dist < CATCH_DISTANCE) {
+                s.gameOver = true;
+                s.won = false;
+                UI.shake(s, 15, 500);
+                this.jumpscare.trigger();
+                UI.showMessage('&#x1F480; DU WURDEST ERWISCHT!<br><small>R = Neustart</small>');
             }
-            ctx.closePath();
-            ctx.fill();
+        }
 
-            // Fake tracks: grüne Umrandung
-            if (track.isFake) {
-                ctx.strokeStyle = `rgba(0, 200, 0, ${alpha * 0.7})`;
-                ctx.lineWidth = 2;
-                ctx.stroke();
+        checkGate() {
+            const s = this.state;
+            if (!s.gate.active) return;
+            const gateDist = Math.hypot(s.player.x - s.gate.x, s.player.y - s.gate.y);
+            if (gateDist < s.gate.radius) {
+                s.gameOver = true;
+                s.won = true;
+                const secs = Math.floor((Date.now() - s.startTime) / 1000);
+                UI.showMessage(`&#x1F3C6; ENTKOMMEN DURCH DAS TOR!<br><small>${secs}s &mdash; R = Neustart</small>`, '#00ff00');
             }
-        });
+        }
 
-        // ── Draw monster (Celestial) ──
-        const t = Date.now() / 1000;
-        const mx = G.monster.x, my = G.monster.y;
+        collectTracks() {
+            const s = this.state;
+            s.tracks.forEach(track => {
+                if (track.found) return;
+                const dist = Math.hypot(track.x - s.player.x, track.y - s.player.y);
+                if (dist > COLLECT_DISTANCE) return;
 
-        // Wings (dark, barely visible)
-        ctx.fillStyle = '#080808';
-        ctx.strokeStyle = '#151515';
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < 4; i++) {
-            const flap = Math.sin(t * 3 + i * 0.5) * (10 + i * 3);
-            const lwx = mx - 38 - flap, lwy = my - 18 + i * 22;
-            const rwx = mx + 38 + flap, rwy = my - 18 + i * 22;
-            ctx.beginPath();
-            ctx.ellipse(lwx, lwy, 28, 10, -0.2, 0, Math.PI * 2);
-            ctx.fill(); ctx.stroke();
-            ctx.beginPath();
-            ctx.ellipse(rwx, rwy, 28, 10, 0.2, 0, Math.PI * 2);
-            ctx.fill(); ctx.stroke();
+                const angle = Math.atan2(track.y - s.player.y, track.x - s.player.x);
+                let angleDiff = angle - s.player.angle;
+                while (angleDiff > Math.PI) angleDiff -= TWO_PI;
+                while (angleDiff < -Math.PI) angleDiff += TWO_PI;
+                if (Math.abs(angleDiff) > s.flashCone / 2) return;
 
-            // 👁️ 4 Augen pro Flügel, am oberen Rand
-            ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 10;
-            for (let e = 0; e < 4; e++) {
-                const eyeOffset = -20 + e * 13;
-                const eyeGlow = 0.4 + Math.sin(t * 3 + i * 1.5 + e * 0.8) * 0.4;
-                const eyeSize = 1.8 + Math.sin(t * 2 + e) * 0.4;
-                ctx.fillStyle = `rgba(255, 255, 255, ${eyeGlow})`;
-                // Linker Flügel - Augen oben
+                track.found = true;
+
+                if (track.isFake) {
+                    s.found = Math.max(0, s.found - 1);
+                    UI.shake(s, 6, 250);
+                    this.particles.spawn(track.x, track.y, '#00ff00', 12);
+                    UI.showToast(s, '&#x26A0;&#xFE0F; FALSCHE SPUR! -1', '#ff6600', 1500);
+                    SFX.fakeCollect();
+                    Spawner.spawnReplacementTrack(s, this.canvas.width, this.canvas.height);
+                } else {
+                    s.found++;
+                    this.particles.spawn(track.x, track.y, '#ff0000', 10);
+                    SFX.bloodCollect();
+                }
+
+                document.getElementById('score').textContent = s.found;
+                const remaining = s.tracks.filter(tr => !tr.found && !tr.isFake).length;
+                document.getElementById('remaining').textContent = remaining;
+
+                if ((s.found >= s.total || remaining === 0) && !s.gate.active) {
+                    Spawner.spawnGate(s, this.canvas.width, this.canvas.height);
+                    UI.shake(s, 8, 600);
+                    UI.showToast(s, '&#x1F6AA; DAS TOR IST OFFEN! FLIEHE!', '#ff00ff', 3000);
+                    SFX.gateAppears();
+                }
+            });
+        }
+    }
+
+    // ════════════════════════════════════════
+    // 15. Renderer
+    // ════════════════════════════════════════
+    class Renderer {
+        constructor(state, particles) {
+            this.state = state;
+            this.particles = particles;
+        }
+
+        render(ctx, canvas) {
+            const s = this.state;
+            ctx.save();
+            ctx.translate(s.shakeX, s.shakeY);
+
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
+
+            this.renderTracks(ctx);
+            this.renderMonster(ctx);
+            this.renderFlashlight(ctx, canvas);
+            this.renderPlayer(ctx);
+            this.particles.render(ctx);
+            this.renderGate(ctx);
+            this.renderDarkPulse(ctx, canvas);
+            this.renderVignette(ctx, canvas);
+
+            ctx.restore();
+            UI.updateHUD(s);
+        }
+
+        renderTracks(ctx) {
+            const s = this.state;
+            s.tracks.forEach(track => {
+                if (track.found) return;
+                const dist = Math.hypot(track.x - s.player.x, track.y - s.player.y);
+                if (dist > s.flashRadius) return;
+
+                const sh = track.shade;
+                const r = Math.floor(100 + sh * 120);
+                const g = Math.floor(20 + sh * 20);
+                const b = Math.floor(20 + sh * 15);
+                const alpha = (1 - dist / s.flashRadius) * (0.5 + sh * 0.5);
+
+                ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
                 ctx.beginPath();
-                ctx.arc(lwx + eyeOffset, lwy - 6, eyeSize, 0, Math.PI * 2);
+                const steps = 12;
+                for (let i = 0; i < steps; i++) {
+                    const angle = (i / steps) * TWO_PI;
+                    const wobble = 0.85 + Math.sin(i * 1.8 + track.x * 0.1) * 0.15;
+                    const px = track.x + Math.cos(angle) * track.size * wobble;
+                    const py = track.y + Math.sin(angle) * track.size * wobble;
+                    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+                }
+                ctx.closePath();
                 ctx.fill();
-                // Rechter Flügel - Augen oben
-                ctx.beginPath();
-                ctx.arc(rwx + eyeOffset, rwy - 6, eyeSize, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.shadowBlur = 0;
+
+                if (track.isFake) {
+                    ctx.strokeStyle = `rgba(0, 200, 0, ${alpha * 0.7})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+        }
+
+        renderMonster(ctx) {
+            const s = this.state;
+            const elapsed = Date.now() / 1000;
+            const mx = s.monster.x, my = s.monster.y;
+
             ctx.fillStyle = '#080808';
+            ctx.strokeStyle = '#151515';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 4; i++) {
+                const flap = Math.sin(elapsed * 3 + i * 0.5) * (10 + i * 3);
+                const lwx = mx - 38 - flap, lwy = my - 18 + i * 22;
+                const rwx = mx + 38 + flap, rwy = my - 18 + i * 22;
+                ctx.beginPath();
+                ctx.ellipse(lwx, lwy, 28, 10, -0.2, 0, TWO_PI);
+                ctx.fill(); ctx.stroke();
+                ctx.beginPath();
+                ctx.ellipse(rwx, rwy, 28, 10, 0.2, 0, TWO_PI);
+                ctx.fill(); ctx.stroke();
+
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 10;
+                for (let e = 0; e < 4; e++) {
+                    const eyeOffset = -20 + e * 13;
+                    const eyeGlow = 0.4 + Math.sin(elapsed * 3 + i * 1.5 + e * 0.8) * 0.4;
+                    const eyeSize = 1.8 + Math.sin(elapsed * 2 + e) * 0.4;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${eyeGlow})`;
+                    ctx.beginPath();
+                    ctx.arc(lwx + eyeOffset, lwy - 6, eyeSize, 0, TWO_PI);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(rwx + eyeOffset, rwy - 6, eyeSize, 0, TWO_PI);
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#080808';
+            }
+
+            ctx.fillStyle = '#060606';
+            ctx.beginPath();
+            ctx.ellipse(mx - 18, my - 8, 16, 20, -0.3, 0, TWO_PI);
+            ctx.fill(); ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(mx + 18, my - 8, 16, 20, 0.3, 0, TWO_PI);
+            ctx.fill(); ctx.stroke();
+
+            const wb = Math.sin(elapsed * 3) * 2;
+            ctx.beginPath();
+            ctx.ellipse(mx, my + 18, 14 + wb, 16 - wb, 0, 0, TWO_PI);
+            ctx.fillStyle = '#040404';
+            ctx.fill(); ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(mx, my - 42, 11, 0, TWO_PI);
+            ctx.strokeStyle = '#1a1a1a';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            const eyeAngle = Math.atan2(s.player.y - my, s.player.x - mx);
+            const eyeGlow = 0.6 + Math.sin(elapsed * 4) * 0.4;
+            ctx.fillStyle = `rgba(255, 255, 255, ${eyeGlow})`;
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(mx + Math.cos(eyeAngle + 0.2) * 5, my + Math.sin(eyeAngle + 0.2) * 5 - 4, 3.5, 0, TWO_PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(mx + Math.cos(eyeAngle - 0.2) * 5, my + Math.sin(eyeAngle - 0.2) * 5 - 4, 3.5, 0, TWO_PI);
+            ctx.fill();
+            ctx.shadowBlur = 0;
         }
 
-        // Face wings
-        ctx.fillStyle = '#060606';
-        const fw = Math.sin(t * 2.5) * 7;
-        ctx.beginPath();
-        ctx.ellipse(mx - 18, my - 8, 16, 20, -0.3, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
-        ctx.beginPath();
-        ctx.ellipse(mx + 18, my - 8, 16, 20, 0.3, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
+        renderFlashlight(ctx, canvas) {
+            const s = this.state;
+            let lightR = s.flashRadius;
+            let flickerVal = 1;
 
-        // Body
-        const wb = Math.sin(t * 3) * 2;
-        ctx.beginPath();
-        ctx.ellipse(mx, my + 18, 14 + wb, 16 - wb, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#040404';
-        ctx.fill(); ctx.stroke();
+            if (s.lightsOutPhase === 'flicker') {
+                flickerVal = 0.2 + Math.random() * 0.8;
+                lightR = s.flashRadius * (0.4 + Math.random() * 0.6);
+            } else if (s.lightsOutPhase === 'dark') {
+                flickerVal = 0;
+            }
 
-        // Halo
-        ctx.beginPath();
-        ctx.arc(mx, my - 42, 11, 0, Math.PI * 2);
-        ctx.strokeStyle = '#1a1a1a';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
+            if (flickerVal > 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.beginPath();
+                ctx.moveTo(s.player.x, s.player.y);
+                ctx.arc(s.player.x, s.player.y, lightR,
+                    s.player.angle - s.flashCone / 2,
+                    s.player.angle + s.flashCone / 2);
+                ctx.closePath();
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.restore();
 
-        // Eyes (red, always visible — the scary part)
-        const ea = Math.atan2(G.player.y - my, G.player.x - mx);
-        const eyeGlow = 0.6 + Math.sin(t * 4) * 0.4;
-        ctx.fillStyle = `rgba(255, 255, 255, ${eyeGlow})`;
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 20;
-        ctx.beginPath();
-        ctx.arc(mx + Math.cos(ea + 0.2) * 5, my + Math.sin(ea + 0.2) * 5 - 4, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(mx + Math.cos(ea - 0.2) * 5, my + Math.sin(ea - 0.2) * 5 - 4, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // ── Flashlight / darkness mask ──
-        let lightR = G.flashRadius;
-        let flicker = 1;
-
-        if (G.lightsOutPhase === 'flicker') {
-            flicker = 0.2 + Math.random() * 0.8;
-            lightR = G.flashRadius * (0.4 + Math.random() * 0.6);
-        } else if (G.lightsOutPhase === 'dark') {
-            flicker = 0;
+                ctx.save();
+                ctx.globalAlpha = 0.12 * flickerVal;
+                ctx.beginPath();
+                ctx.moveTo(s.player.x, s.player.y);
+                ctx.arc(s.player.x, s.player.y, lightR,
+                    s.player.angle - s.flashCone / 2,
+                    s.player.angle + s.flashCone / 2);
+                ctx.closePath();
+                ctx.fillStyle = '#ffff88';
+                ctx.fill();
+                ctx.restore();
+            } else {
+                ctx.save();
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.beginPath();
+                ctx.arc(s.player.x, s.player.y, 3, 0, TWO_PI);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.restore();
+            }
         }
 
-        if (flicker > 0) {
-            // Flashlight cone mask
-            ctx.save();
-            ctx.globalCompositeOperation = 'destination-in';
+        renderPlayer(ctx) {
+            const s = this.state;
+            ctx.globalCompositeOperation = 'source-over';
             ctx.beginPath();
-            ctx.moveTo(G.player.x, G.player.y);
-            ctx.arc(G.player.x, G.player.y, lightR,
-                G.player.angle - G.flashCone / 2,
-                G.player.angle + G.flashCone / 2);
-            ctx.closePath();
-            ctx.fillStyle = 'white';
+            ctx.arc(s.player.x, s.player.y, PLAYER_RADIUS, 0, TWO_PI);
+            ctx.fillStyle = '#ffcc99';
             ctx.fill();
-            ctx.restore();
+            ctx.strokeStyle = '#c49070';
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-            // Flashlight glow
-            ctx.save();
-            ctx.globalAlpha = 0.12 * flicker;
-            ctx.beginPath();
-            ctx.moveTo(G.player.x, G.player.y);
-            ctx.arc(G.player.x, G.player.y, lightR,
-                G.player.angle - G.flashCone / 2,
-                G.player.angle + G.flashCone / 2);
-            ctx.closePath();
-            ctx.fillStyle = '#ffff88';
-            ctx.fill();
-            ctx.restore();
-        } else {
-            // Total darkness — only tiny glow around player
-            ctx.save();
-            ctx.globalCompositeOperation = 'destination-in';
-            ctx.beginPath();
-            ctx.arc(G.player.x, G.player.y, 3, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            ctx.restore();
+            const pglow = ctx.createRadialGradient(s.player.x, s.player.y, 0, s.player.x, s.player.y, 30);
+            pglow.addColorStop(0, 'rgba(255,200,150,0.08)');
+            pglow.addColorStop(1, 'transparent');
+            ctx.fillStyle = pglow;
+            ctx.fillRect(s.player.x - 30, s.player.y - 30, 60, 60);
         }
 
-        // ── Player (always visible) ──
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.beginPath();
-        ctx.arc(G.player.x, G.player.y, 11, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffcc99';
-        ctx.fill();
-        ctx.strokeStyle = '#c49070';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        renderGate(ctx) {
+            const s = this.state;
+            if (!s.gate.active) return;
 
-        // Small glow around player
-        const pglow = ctx.createRadialGradient(G.player.x, G.player.y, 0, G.player.x, G.player.y, 30);
-        pglow.addColorStop(0, 'rgba(255,200,150,0.08)');
-        pglow.addColorStop(1, 'transparent');
-        ctx.fillStyle = pglow;
-        ctx.fillRect(G.player.x - 30, G.player.y - 30, 60, 60);
-
-        // ── Particles ──
-        renderParticles();
-
-        // ── Exit Gate ──
-        if (G.gate.active) {
-            const time = Date.now() / 1000;
-            const gx = G.gate.x, gy = G.gate.y;
+            const elapsed = Date.now() / 1000;
+            const gx = s.gate.x, gy = s.gate.y;
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            
-            // Äußerer Glühring (pulsierend)
-            const outerRadius = G.gate.radius + 20 + Math.sin(time * 3) * 10;
-            const outerGlow = ctx.createRadialGradient(gx, gy, G.gate.radius, gx, gy, outerRadius);
+
+            const outerRadius = s.gate.radius + 20 + Math.sin(elapsed * 3) * 10;
+            const outerGlow = ctx.createRadialGradient(gx, gy, s.gate.radius, gx, gy, outerRadius);
             outerGlow.addColorStop(0, 'rgba(100, 0, 200, 0.4)');
             outerGlow.addColorStop(0.5, 'rgba(150, 0, 255, 0.2)');
             outerGlow.addColorStop(1, 'transparent');
@@ -1347,37 +1438,34 @@
             ctx.beginPath();
             ctx.arc(gx, gy, outerRadius, 0, TWO_PI);
             ctx.fill();
-            
-            // Innerer starker Glühring
-            const innerGlow = ctx.createRadialGradient(gx, gy, 10, gx, gy, G.gate.radius);
+
+            const innerGlow = ctx.createRadialGradient(gx, gy, 10, gx, gy, s.gate.radius);
             innerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
             innerGlow.addColorStop(0.2, 'rgba(200, 100, 255, 0.8)');
             innerGlow.addColorStop(0.5, 'rgba(150, 0, 200, 0.5)');
             innerGlow.addColorStop(1, 'rgba(80, 0, 150, 0.2)');
             ctx.fillStyle = innerGlow;
             ctx.beginPath();
-            ctx.arc(gx, gy, G.gate.radius, 0, TWO_PI);
+            ctx.arc(gx, gy, s.gate.radius, 0, TWO_PI);
             ctx.fill();
-            
-            // Drehende Tor-Struktur (8 Linien)
-            ctx.strokeStyle = `rgba(255, 200, 255, ${0.6 + Math.sin(time * 5) * 0.3})`;
+
+            ctx.strokeStyle = `rgba(255, 200, 255, ${0.6 + Math.sin(elapsed * 5) * 0.3})`;
             ctx.lineWidth = 3;
             for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * TWO_PI + time * 2;
-                const r1 = 20 + Math.sin(time * 4 + i) * 5;
-                const r2 = G.gate.radius - 10;
+                const angle = (i / 8) * TWO_PI + elapsed * 2;
+                const r1 = 20 + Math.sin(elapsed * 4 + i) * 5;
+                const r2 = s.gate.radius - 10;
                 ctx.beginPath();
                 ctx.moveTo(gx + Math.cos(angle) * r1, gy + Math.sin(angle) * r1);
                 ctx.lineTo(gx + Math.cos(angle) * r2, gy + Math.sin(angle) * r2);
                 ctx.stroke();
             }
-            
-            // Zentrales Symbol (stilisiertes Portal)
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + Math.sin(time * 8) * 0.2})`;
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + Math.sin(elapsed * 8) * 0.2})`;
             ctx.beginPath();
             for (let i = 0; i < 6; i++) {
-                const angle = (i / 6) * TWO_PI + time;
-                const r = 15 + Math.sin(time * 6 + i * 2) * 5;
+                const angle = (i / 6) * TWO_PI + elapsed;
+                const r = 15 + Math.sin(elapsed * 6 + i * 2) * 5;
                 const px = gx + Math.cos(angle) * r;
                 const py = gy + Math.sin(angle) * r;
                 if (i === 0) ctx.moveTo(px, py);
@@ -1385,8 +1473,7 @@
             }
             ctx.closePath();
             ctx.fill();
-            
-            // "TOR" Text
+
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 16px "Courier New", monospace';
             ctx.textAlign = 'center';
@@ -1395,9 +1482,8 @@
             ctx.shadowBlur = 15;
             ctx.fillText('TOR', gx, gy - 35);
             ctx.shadowBlur = 0;
-            
-            // Anzeige-Richtungspfeil wenn weit weg
-            const distToGate = Math.hypot(G.player.x - gx, G.player.y - gy);
+
+            const distToGate = Math.hypot(this.state.player.x - gx, this.state.player.y - gy);
             if (distToGate > 200) {
                 ctx.strokeStyle = 'rgba(255, 0, 255, 0.5)';
                 ctx.lineWidth = 2;
@@ -1407,131 +1493,71 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
-            
+
             ctx.restore();
         }
 
-        // ── Edge effects ──
-        const distM = Math.hypot(G.monster.x - G.player.x, G.monster.y - G.player.y);
-        let danger = 0;
-        if (distM < PROXIMITY_DISTANCE && !G.gameOver) danger = Math.max(danger, (1 - distM / PROXIMITY_DISTANCE) * 0.5);
-        if (G.teleportFlash > 0) danger = Math.max(danger, (G.teleportFlash / 800) * 0.7);
+        renderDarkPulse(ctx, canvas) {
+            const s = this.state;
+            if (!s.darkPulseActive) {
+                s.flashRadius = FLASH_RADIUS;
+                return;
+            }
 
-        // Dark Pulse Realm - INTENSIVIERTE Effekte
-        if (G.darkPulseActive) {
-            const time = Date.now();
-            
-            // 1. DUNKLES LILA OVERLAY (pulsierend)
-            const pulseAlpha = 0.5 + Math.sin(time / 150) * 0.2;
+            const nowMs = Date.now();
+            const pulseAlpha = 0.5 + Math.sin(nowMs / 150) * 0.2;
             ctx.fillStyle = `rgba(60, 0, 80, ${pulseAlpha})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 2. RAND-PARTIKEL
+
             if (Math.random() < 0.4) {
                 const side = Math.floor(Math.random() * 4);
                 const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
                 const py = side >= 2 ? Math.random() * canvas.height : (side === 0 ? 0 : canvas.height);
                 const colors = ['#8800ff', '#4400aa', '#660088'];
-                spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 2 + Math.floor(Math.random() * 3));
+                this.particles.spawn(px, py, colors[Math.floor(Math.random() * colors.length)], 2 + Math.floor(Math.random() * 3));
             }
-            
-            // 3. ORGANISCHE RANKEN - Variierend und natürlich
+
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            const ts = time / 1000;
+            const ts = nowMs / 1000;
             const w = canvas.width, h = canvas.height;
-            
-            function drawOrganicVine(startX, startY, dirX, dirY, baseLength, seed, thickness) {
-                const segments = 8 + Math.floor(Math.abs(Math.sin(seed * 7.3)) * 8);
-                const curveFreq1 = 0.5 + Math.abs(Math.sin(seed * 3.1)) * 1.5;
-                const curveFreq2 = 0.8 + Math.abs(Math.sin(seed * 4.7)) * 2.2;
-                const curveAmp1 = 15 + Math.abs(Math.sin(seed * 2.9)) * 25;
-                const curveAmp2 = 8 + Math.abs(Math.sin(seed * 5.3)) * 15;
-                const length = baseLength * (0.7 + Math.abs(Math.sin(seed * 1.8)) * 0.6);
-                const speed1 = 0.3 + Math.abs(Math.sin(seed * 6.2)) * 0.7;
-                const speed2 = 0.4 + Math.abs(Math.sin(seed * 3.8)) * 0.8;
-                
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                let cx = startX, cy = startY, prevX = startX, prevY = startY;
-                
-                for (let i = 1; i <= segments; i++) {
-                    const t = i / segments;
-                    const wave1 = Math.sin(ts * speed1 + seed + t * curveFreq1 * 3) * curveAmp1 * (1 - t * 0.3);
-                    const wave2 = Math.cos(ts * speed2 + seed * 2.1 + t * curveFreq2 * 4) * curveAmp2 * (1 - t * 0.5);
-                    const wave3 = Math.sin(ts * 0.6 + seed * 3.7 + t * 7) * 8 * (1 - t);
-                    
-                    const perpX = -dirY, perpY = dirX;
-                    cx += dirX * (length / segments);
-                    cy += dirY * (length / segments);
-                    
-                    const organicX = cx + perpX * (wave1 + wave2 + wave3);
-                    const organicY = cy + perpY * (wave1 + wave2 + wave3);
-                    
-                    const cpX = (prevX + organicX) / 2 + perpX * Math.sin(ts + seed + i) * 5;
-                    const cpY = (prevY + organicY) / 2 + perpY * Math.sin(ts + seed + i) * 5;
-                    
-                    ctx.quadraticCurveTo(cpX, cpY, organicX, organicY);
-                    prevX = organicX; prevY = organicY;
-                }
-                
-                const hue = 260 + Math.sin(seed * 8.5) * 30;
-                const alpha = 0.15 + Math.abs(Math.sin(ts * 0.4 + seed)) * 0.15;
-                ctx.strokeStyle = `hsla(${hue}, 80%, 40%, ${alpha})`;
-                ctx.lineWidth = thickness * (0.6 + Math.abs(Math.sin(ts * 0.3 + seed)) * 0.8);
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                
-                if (Math.abs(Math.sin(seed * 9.7)) > 0.6 && length > 80) {
-                    const branchPoint = 0.3 + Math.abs(Math.sin(seed * 2.4)) * 0.4;
-                    const bx = startX + dirX * length * branchPoint;
-                    const by = startY + dirY * length * branchPoint;
-                    const branchDirX = dirX * Math.cos(0.8) - dirY * Math.sin(0.8) * (Math.sin(seed * 5.5) > 0 ? 1 : -1);
-                    const branchDirY = dirX * Math.sin(0.8) + dirY * Math.cos(0.8) * (Math.sin(seed * 5.5) > 0 ? 1 : -1);
-                    drawOrganicVine(bx, by, branchDirX, branchDirY, length * 0.5, seed * 1.5, thickness * 0.6);
-                }
-            }
-            
+
             const leftCount = 5 + Math.floor(Math.abs(Math.sin(ts * 0.1)) * 4);
             const rightCount = 5 + Math.floor(Math.abs(Math.sin(ts * 0.12 + 1)) * 4);
             const topCount = 4 + Math.floor(Math.abs(Math.sin(ts * 0.08 + 2)) * 3);
             const bottomCount = 4 + Math.floor(Math.abs(Math.sin(ts * 0.11 + 3)) * 3);
-            
+
             for (let v = 0; v < leftCount; v++) {
                 const yPos = h * (0.08 + v * (0.85 / leftCount)) + Math.sin(ts * 0.2 + v * 2) * 30;
-                const thickness = 1.5 + Math.abs(Math.sin(v * 3.3)) * 2.5;
-                drawOrganicVine(0, yPos, 1, Math.sin(ts * 0.15 + v) * 0.15, h * 0.22, v * 1.7 + ts, thickness);
+                const thick = 1.5 + Math.abs(Math.sin(v * 3.3)) * 2.5;
+                this.drawOrganicVine(ctx, 0, yPos, 1, Math.sin(ts * 0.15 + v) * 0.15, h * 0.22, v * 1.7 + ts, thick);
             }
-            
             for (let v = 0; v < rightCount; v++) {
                 const yPos = h * (0.05 + v * (0.9 / rightCount)) + Math.cos(ts * 0.25 + v * 1.5) * 35;
-                const thickness = 1.5 + Math.abs(Math.sin(v * 4.1 + 10)) * 2.5;
-                drawOrganicVine(w, yPos, -1, Math.cos(ts * 0.18 + v + 5) * 0.12, h * 0.25, v * 2.3 + ts + 100, thickness);
+                const thick = 1.5 + Math.abs(Math.sin(v * 4.1 + 10)) * 2.5;
+                this.drawOrganicVine(ctx, w, yPos, -1, Math.cos(ts * 0.18 + v + 5) * 0.12, h * 0.25, v * 2.3 + ts + 100, thick);
             }
-            
             for (let v = 0; v < topCount; v++) {
                 const xPos = w * (0.1 + v * (0.8 / topCount)) + Math.sin(ts * 0.22 + v * 2.2) * 40;
-                const thickness = 1.5 + Math.abs(Math.sin(v * 3.9 + 20)) * 2;
-                drawOrganicVine(xPos, 0, Math.sin(ts * 0.12 + v + 3) * 0.1, 1, w * 0.18, v * 1.9 + ts + 200, thickness);
+                const thick = 1.5 + Math.abs(Math.sin(v * 3.9 + 20)) * 2;
+                this.drawOrganicVine(ctx, xPos, 0, Math.sin(ts * 0.12 + v + 3) * 0.1, 1, w * 0.18, v * 1.9 + ts + 200, thick);
             }
-            
             for (let v = 0; v < bottomCount; v++) {
                 const xPos = w * (0.12 + v * (0.76 / bottomCount)) + Math.cos(ts * 0.19 + v * 1.8) * 35;
-                const thickness = 1.5 + Math.abs(Math.sin(v * 4.7 + 30)) * 2;
-                drawOrganicVine(xPos, h, Math.cos(ts * 0.14 + v + 7) * 0.08, -1, w * 0.18, v * 2.1 + ts + 300, thickness);
+                const thick = 1.5 + Math.abs(Math.sin(v * 4.7 + 30)) * 2;
+                this.drawOrganicVine(ctx, xPos, h, Math.cos(ts * 0.14 + v + 7) * 0.08, -1, w * 0.18, v * 2.1 + ts + 300, thick);
             }
-            
+
             ctx.restore();
-            
-            // 6. RAND-NEBEL (subtiler Dunst)
+
             ctx.save();
             for (let side = 0; side < 4; side++) {
                 let fog;
-                if (side === 0) { fog = ctx.createLinearGradient(0, 0, 0, h * 0.15); ctx.fillStyle = fog; }
-                else if (side === 1) { fog = ctx.createLinearGradient(0, h, 0, h * 0.85); ctx.fillStyle = fog; }
-                else if (side === 2) { fog = ctx.createLinearGradient(0, 0, w * 0.12, 0); ctx.fillStyle = fog; }
-                else { fog = ctx.createLinearGradient(w, 0, w * 0.88, 0); ctx.fillStyle = fog; }
-                const fogAlpha = 0.2 + Math.sin(time / (300 + side * 50) + side) * 0.1;
+                if (side === 0) { fog = ctx.createLinearGradient(0, 0, 0, h * 0.15); }
+                else if (side === 1) { fog = ctx.createLinearGradient(0, h, 0, h * 0.85); }
+                else if (side === 2) { fog = ctx.createLinearGradient(0, 0, w * 0.12, 0); }
+                else { fog = ctx.createLinearGradient(w, 0, w * 0.88, 0); }
+                const fogAlpha = 0.2 + Math.sin(nowMs / (300 + side * 50) + side) * 0.1;
                 fog.addColorStop(0, `rgba(80, 0, 120, ${fogAlpha})`);
                 fog.addColorStop(1, 'transparent');
                 ctx.fillStyle = fog;
@@ -1541,53 +1567,223 @@
                 else ctx.fillRect(w * 0.88, 0, w * 0.12, h);
             }
             ctx.restore();
-            
-            // 7. VERSTÄRKTES TASCHENLAMPPEN-FLACKERN
-            G.flashRadius = FLASH_RADIUS - 30 - Math.random() * 60;
-        } else {
-            G.flashRadius = FLASH_RADIUS;
+
+            s.flashRadius = FLASH_RADIUS - 30 - Math.random() * 60;
         }
 
-        // Red danger vignette
-        if (danger > 0) {
-            const vg = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, canvas.height * 0.25,
-                canvas.width / 2, canvas.height / 2, canvas.height * 0.75);
-            vg.addColorStop(0, 'transparent');
-            vg.addColorStop(1, `rgba(255,0,0,${danger})`);
-            ctx.fillStyle = vg;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawOrganicVine(ctx, startX, startY, dirX, dirY, baseLength, seed, thickness) {
+            const ts = Date.now() / 1000;
+            const segments = 8 + Math.floor(Math.abs(Math.sin(seed * 7.3)) * 8);
+            const curveFreq1 = 0.5 + Math.abs(Math.sin(seed * 3.1)) * 1.5;
+            const curveFreq2 = 0.8 + Math.abs(Math.sin(seed * 4.7)) * 2.2;
+            const curveAmp1 = 15 + Math.abs(Math.sin(seed * 2.9)) * 25;
+            const curveAmp2 = 8 + Math.abs(Math.sin(seed * 5.3)) * 15;
+            const length = baseLength * (0.7 + Math.abs(Math.sin(seed * 1.8)) * 0.6);
+            const speed1 = 0.3 + Math.abs(Math.sin(seed * 6.2)) * 0.7;
+            const speed2 = 0.4 + Math.abs(Math.sin(seed * 3.8)) * 0.8;
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            let cx = startX, cy = startY, prevX = startX, prevY = startY;
+
+            for (let i = 1; i <= segments; i++) {
+                const progress = i / segments;
+                const wave1 = Math.sin(ts * speed1 + seed + progress * curveFreq1 * 3) * curveAmp1 * (1 - progress * 0.3);
+                const wave2 = Math.cos(ts * speed2 + seed * 2.1 + progress * curveFreq2 * 4) * curveAmp2 * (1 - progress * 0.5);
+                const wave3 = Math.sin(ts * 0.6 + seed * 3.7 + progress * 7) * 8 * (1 - progress);
+
+                const perpX = -dirY, perpY = dirX;
+                cx += dirX * (length / segments);
+                cy += dirY * (length / segments);
+
+                const organicX = cx + perpX * (wave1 + wave2 + wave3);
+                const organicY = cy + perpY * (wave1 + wave2 + wave3);
+
+                const cpX = (prevX + organicX) / 2 + perpX * Math.sin(ts + seed + i) * 5;
+                const cpY = (prevY + organicY) / 2 + perpY * Math.sin(ts + seed + i) * 5;
+
+                ctx.quadraticCurveTo(cpX, cpY, organicX, organicY);
+                prevX = organicX; prevY = organicY;
+            }
+
+            const hue = 260 + Math.sin(seed * 8.5) * 30;
+            const alpha = 0.15 + Math.abs(Math.sin(ts * 0.4 + seed)) * 0.15;
+            ctx.strokeStyle = `hsla(${hue}, 80%, 40%, ${alpha})`;
+            ctx.lineWidth = thickness * (0.6 + Math.abs(Math.sin(ts * 0.3 + seed)) * 0.8);
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            if (Math.abs(Math.sin(seed * 9.7)) > 0.6 && length > 80) {
+                const branchPoint = 0.3 + Math.abs(Math.sin(seed * 2.4)) * 0.4;
+                const bx = startX + dirX * length * branchPoint;
+                const by = startY + dirY * length * branchPoint;
+                const sign = Math.sin(seed * 5.5) > 0 ? 1 : -1;
+                const branchDirX = dirX * Math.cos(0.8) - dirY * Math.sin(0.8) * sign;
+                const branchDirY = dirX * Math.sin(0.8) + dirY * Math.cos(0.8) * sign;
+                this.drawOrganicVine(ctx, bx, by, branchDirX, branchDirY, length * 0.5, seed * 1.5, thickness * 0.6);
+            }
         }
 
-        ctx.restore(); // end shake
+        renderVignette(ctx, canvas) {
+            const s = this.state;
+            const monsterDist = Math.hypot(s.monster.x - s.player.x, s.monster.y - s.player.y);
+            let danger = 0;
+            if (monsterDist < PROXIMITY_DISTANCE && !s.gameOver) {
+                danger = Math.max(danger, (1 - monsterDist / PROXIMITY_DISTANCE) * 0.5);
+            }
+            if (s.teleportFlash > 0) {
+                danger = Math.max(danger, (s.teleportFlash / 800) * 0.7);
+            }
 
-        // ── HUD updates ──
-        const elapsed = Math.floor((Date.now() - G.startTime) / 1000);
-        document.getElementById('timer').textContent = `Zeit: ${elapsed}s`;
-
-        // abilities removed
-    }
-
-    // ─── GAME LOOP ───
-    let lastTime = 0;
-    function loop(time) {
-        const dt = Math.min(time - lastTime, 50); // cap at 50ms
-        lastTime = time;
-        if (G.started) {
-            update(dt);
-            render();
+            if (danger > 0) {
+                const vg = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.25,
+                    canvas.width / 2, canvas.height / 2, canvas.height * 0.75);
+                vg.addColorStop(0, 'transparent');
+                vg.addColorStop(1, `rgba(255,0,0,${danger})`);
+                ctx.fillStyle = vg;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
         }
-        requestAnimationFrame(loop);
     }
 
-    function startGame() {
-        document.getElementById('startscreen').style.display = 'none';
-        G.started = true;
-        initAudio();
-        init();
+    // ════════════════════════════════════════
+    // 16. Game
+    // ════════════════════════════════════════
+    class Game {
+        constructor() {
+            this.canvas = document.getElementById('game');
+            this.ctx = this.canvas.getContext('2d');
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+            window.addEventListener('resize', () => {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            });
+
+            this.state = new GameState();
+            this.audio = new AudioManager();
+            this.organ = new OrganSound(this.audio);
+            this.heartbeat = new HeartbeatSound(this.audio);
+            this.whisper = new WhisperSound(this.audio);
+            this.jumpscare = new JumpscareSystem(this.audio);
+            this.input = new InputManager();
+            this.particles = new ParticleSystem(this.state);
+            this.abilities = new AbilitySystem(this.state, this.whisper, this.canvas);
+            this.collisions = new CollisionSystem(this.state, this.particles, this.jumpscare, this.heartbeat, this.canvas);
+            this.renderer = new Renderer(this.state, this.particles);
+
+            SFX.init(this.audio);
+
+            this.input.init(() => {
+                if (this.state.gameOver) this.init();
+            });
+
+            this.lastTime = 0;
+
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+        }
+
+        init() {
+            this.state.reset(this.canvas.width, this.canvas.height);
+
+            Spawner.spawnTracks(this.state, this.canvas.width, this.canvas.height);
+            Spawner.spawnMonster(this.state, this.canvas.width, this.canvas.height);
+
+            document.getElementById('score').textContent = '0';
+            document.getElementById('total').textContent = this.state.total;
+            document.getElementById('remaining').textContent = this.state.total;
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('toast').style.opacity = 0;
+
+            if (this.audio.started) {
+                this.stopAllAudio();
+                this.organ.start(this.state);
+            }
+        }
+
+        stopAllAudio() {
+            this.organ.stop();
+            this.whisper.stop();
+            this.heartbeat.stop();
+        }
+
+        start() {
+            document.getElementById('startscreen').style.display = 'none';
+            this.state.started = true;
+            this.audio.init();
+            this.init();
+        }
+
+        loop(timestamp) {
+            const dt = Math.min(timestamp - this.lastTime, 50);
+            this.lastTime = timestamp;
+            if (this.state.started) {
+                this.update(dt);
+                this.renderer.render(this.ctx, this.canvas);
+            }
+            requestAnimationFrame(ts => this.loop(ts));
+        }
+
+        update(dt) {
+            if (this.state.gameOver) return;
+
+            UI.updateToast(this.state, dt);
+            UI.updateShake(this.state, dt);
+            this.processMovement(dt);
+            this.updateMonsterChase();
+            this.abilities.update(dt);
+            this.collisions.check();
+            this.particles.update();
+
+            if (this.state.gameOver && !this.state.won) {
+                this.stopAllAudio();
+            }
+            if (this.state.gameOver && this.state.won) {
+                this.stopAllAudio();
+            }
+        }
+
+        processMovement(dt) {
+            const s = this.state;
+            let dx = 0, dy = 0;
+            if (this.input.isDown('w') || this.input.isDown('arrowup')) dy = -1;
+            if (this.input.isDown('s') || this.input.isDown('arrowdown')) dy = 1;
+            if (this.input.isDown('a') || this.input.isDown('arrowleft')) dx = -1;
+            if (this.input.isDown('d') || this.input.isDown('arrowright')) dx = 1;
+
+            const speedMod = s.darkPulseActive ? 0.65 : 1;
+            if (dx !== 0 || dy !== 0) {
+                const len = Math.hypot(dx, dy);
+                dx /= len; dy /= len;
+                s.player.x = Math.max(15, Math.min(this.canvas.width - 15, s.player.x + dx * s.player.speed * speedMod));
+                s.player.y = Math.max(15, Math.min(this.canvas.height - 15, s.player.y + dy * s.player.speed * speedMod));
+                s.player.angle = Math.atan2(dy, dx);
+            }
+        }
+
+        updateMonsterChase() {
+            const s = this.state;
+            const diffX = s.player.x - s.monster.x;
+            const diffY = s.player.y - s.monster.y;
+            const dist = Math.hypot(diffX, diffY);
+            const monsterMod = s.darkPulseActive ? 2.0 : 1;
+            if (dist > 0) {
+                s.monster.x += (diffX / dist) * s.monster.speed * monsterMod;
+                s.monster.y += (diffY / dist) * s.monster.speed * monsterMod;
+            }
+        }
+
+        run() {
+            requestAnimationFrame(ts => this.loop(ts));
+        }
     }
 
-    requestAnimationFrame(loop);
+    // ════════════════════════════════════════
+    // START
+    // ════════════════════════════════════════
+    const game = new Game();
+    game.run();
     </script>
 </body>
 </html>

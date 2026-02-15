@@ -69,24 +69,84 @@
             93% { opacity: 0.3; }
         }
         
-        /* JUMPSCARE overlay */
+        /* JUMPSCARE overlay - Gefallener Engel */
         #jumpscare {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999; display: none;
             align-items: center; justify-content: center;
+            flex-direction: column;
         }
         #jumpscare.active { display: flex; }
-        #jumpscare img, #jumpscare div {
-            max-width: 100%; max-height: 100%; object-fit: contain;
+        #jumpscare .fallen-angel {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+        #jumpscare .halo {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 30px;
+            border: 6px solid #880000;
+            border-radius: 50%;
+            animation: haloBreak 0.3s infinite;
+            box-shadow: 0 0 30px #ff0000, 0 0 60px #880000;
         }
         #jumpscare .face {
-            font-size: 15vw; color: #ff0000;
-            text-shadow: 0 0 50px #ff0000, 0 0 100px #ff0000;
-            animation: jumpFace 0.5s infinite;
+            font-size: 12vw;
+            color: #ff0000;
+            text-shadow: 0 0 50px #ff0000, 0 0 100px #ff0000, 0 0 150px #880000;
+            animation: angelFace 0.4s infinite;
+            filter: grayscale(100%) contrast(150%);
         }
-        @keyframes jumpFace {
-            0%, 100% { transform: scale(1) rotate(-2deg); }
-            50% { transform: scale(1.1) rotate(2deg); }
+        #jumpscare .wings {
+            position: absolute;
+            top: 50%;
+            font-size: 80px;
+            color: #220000;
+            text-shadow: 0 0 20px #440000;
+            animation: wingsFlap 0.2s infinite alternate;
+        }
+        #jumpscare .wings.left { left: -100px; transform: rotate(-20deg); }
+        #jumpscare .wings.right { right: -100px; transform: rotate(20deg); }
+        #jumpscare .title {
+            font-size: 24px;
+            color: #880000;
+            text-shadow: 0 0 20px #ff0000;
+            margin-top: 20px;
+            animation: titlePulse 0.5s infinite;
+        }
+        @keyframes haloBreak {
+            0%, 100% { transform: translateX(-50%) rotate(-5deg) scale(1); }
+            50% { transform: translateX(-50%) rotate(5deg) scale(1.1); }
+        }
+        @keyframes angelFace {
+            0%, 100% { transform: scale(1) rotate(-3deg); filter: grayscale(100%) contrast(150%); }
+            50% { transform: scale(1.15) rotate(3deg); filter: grayscale(50%) contrast(200%); }
+        }
+        @keyframes wingsFlap {
+            0% { transform: rotate(-30deg) translateY(0); }
+            100% { transform: rotate(-10deg) translateY(-10px); }
+        }
+        @keyframes titlePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        /* Dark Pulse Realm verstärkte Effekte */
+        @keyframes darkPulseWave {
+            0% { transform: scale(0); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes runeFloat {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0.5; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        @keyframes glitchLine {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
         }
     </style>
 </head>
@@ -111,7 +171,15 @@
     <div id="message"></div>
     <div id="toast"></div>
     <div id="instructions">WASD / Pfeile • R = Neustart</div>
-    <div id="jumpscare"><div class="face">👹</div></div>
+    <div id="jumpscare">
+        <div class="fallen-angel">
+            <div class="halo"></div>
+            <div class="wings left">🪶</div>
+            <div class="face">😇</div>
+            <div class="wings right">🪶</div>
+        </div>
+        <div class="title">DER GEFALLEN ENGEL</div>
+    </div>
     <canvas id="game"></canvas>
 
     <script>
@@ -358,108 +426,223 @@
         if (whisperGain) whisperGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
     }
 
-    // ─── 💀 JUMPSCARE ───
+    // ─── 🩸 BLUTSPUR SAMMEL-SOUNDS ───
+    function playBloodCollect() {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime;
+        
+        // 1. Tiefes Blut-Glucker (Hauptsound)
+        const bubble = audioCtx.createOscillator();
+        const bg = audioCtx.createGain();
+        const bf = audioCtx.createBiquadFilter();
+        bubble.type = 'sine';
+        bubble.frequency.setValueAtTime(180, t);
+        bubble.frequency.exponentialRampToValueAtTime(80, t + 0.3);
+        bf.type = 'lowpass';
+        bf.frequency.value = 400;
+        bg.gain.setValueAtTime(0.4, t);
+        bg.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        bubble.connect(bf);
+        bf.connect(bg);
+        bg.connect(masterGain);
+        bubble.start(t);
+        bubble.stop(t + 0.35);
+        
+        // 2. Hoher "Saug"-Ton
+        const hiss = audioCtx.createOscillator();
+        const hg = audioCtx.createGain();
+        hiss.type = 'sawtooth';
+        hiss.frequency.setValueAtTime(2000, t);
+        hiss.frequency.exponentialRampToValueAtTime(500, t + 0.15);
+        hg.gain.setValueAtTime(0.15, t);
+        hg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        hiss.connect(hg);
+        hg.connect(masterGain);
+        hiss.start(t);
+        hiss.stop(t + 0.2);
+        
+        // 3. Zufriedenheitston (tiefes Summen)
+        const hum = audioCtx.createOscillator();
+        const humg = audioCtx.createGain();
+        hum.type = 'sine';
+        hum.frequency.value = 110;
+        humg.gain.setValueAtTime(0, t);
+        humg.gain.linearRampToValueAtTime(0.3, t + 0.1);
+        humg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        hum.connect(humg);
+        humg.connect(masterGain);
+        hum.start(t);
+        hum.stop(t + 0.55);
+    }
+
+    // ─── ⚠️ FAKE SPUR SAMMEL-SOUND ───
+    function playFakeCollect() {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime;
+        
+        // 1. Disharmonischer "Fehler"-Ton
+        const wrong = audioCtx.createOscillator();
+        const wg = audioCtx.createGain();
+        wrong.type = 'square';
+        wrong.frequency.setValueAtTime(300, t);
+        wrong.frequency.setValueAtTime(280, t + 0.1);
+        wrong.frequency.setValueAtTime(310, t + 0.2);
+        wrong.frequency.setValueAtTime(260, t + 0.3);
+        wg.gain.setValueAtTime(0.3, t);
+        wg.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        wrong.connect(wg);
+        wg.connect(masterGain);
+        wrong.start(t);
+        wrong.stop(t + 0.45);
+        
+        // 2. Hohes Piepsen (Warnung)
+        const warn = audioCtx.createOscillator();
+        const warg = audioCtx.createGain();
+        warn.type = 'sine';
+        warn.frequency.setValueAtTime(1500, t);
+        warn.frequency.linearRampToValueAtTime(2000, t + 0.15);
+        warg.gain.setValueAtTime(0.2, t);
+        warg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        warn.connect(warg);
+        warg.connect(masterGain);
+        warn.start(t);
+        warn.stop(t + 0.2);
+        
+        // 3. Tiefer "Nein"-Groll
+        const growl = audioCtx.createOscillator();
+        const growlg = audioCtx.createGain();
+        growl.type = 'sawtooth';
+        growl.frequency.setValueAtTime(100, t);
+        growl.frequency.linearRampToValueAtTime(60, t + 0.3);
+        const growlf = audioCtx.createBiquadFilter();
+        growlf.type = 'lowpass';
+        growlf.frequency.value = 200;
+        growlg.gain.setValueAtTime(0.25, t);
+        growlg.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        growl.connect(growlf);
+        growlf.connect(growlg);
+        growlg.connect(masterGain);
+        growl.start(t);
+        growl.stop(t + 0.4);
+    }
+
+    // ─── 😇 GEFALLENENER ENGEL JUMPSCARE ───
     function playJumpscare() {
         if (!audioCtx) return;
         
-        // VISUELLER JUMPSCARE
+        // VISUELLER JUMPSCARE - Gefallener Engel
         const jumpEl = document.getElementById('jumpscare');
         jumpEl.style.display = 'flex';
         jumpEl.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        // Blitz-Effekt
+        // Wechselt zwischen Himmlisch und Verdammnis
         let flashes = 0;
         const flashInterval = setInterval(() => {
-            jumpEl.style.background = flashes % 2 === 0 ? '#ff0000' : '#000';
+            // Abwechselnd: Weiß (Himmel) und Rot/Weiß (Verdammnis)
+            const colors = ['#ffffff', '#ff0000', '#fff8f0', '#880000', '#ffeeee', '#220000'];
+            jumpEl.style.background = colors[flashes % colors.length];
+            // Halo-Farbe ändern
+            const halo = jumpEl.querySelector('.halo');
+            if (halo) {
+                halo.style.borderColor = flashes % 2 === 0 ? '#ffffff' : '#880000';
+                halo.style.boxShadow = flashes % 2 === 0 ? 
+                    '0 0 30px #ffffff, 0 0 60px #ffff00' : 
+                    '0 0 30px #ff0000, 0 0 60px #880000';
+            }
             flashes++;
-            if (flashes > 8) {
+            if (flashes > 12) {
                 clearInterval(flashInterval);
                 jumpEl.style.background = '#000';
             }
-        }, 80);
+        }, 100);
         
-        // Nach 1.5 Sekunden ausblenden
+        // Nach 2 Sekunden ausblenden
         setTimeout(() => {
             jumpEl.classList.remove('active');
             setTimeout(() => { jumpEl.style.display = 'none'; }, 500);
             document.body.style.overflow = '';
-        }, 1500);
+        }, 2000);
         
         const t = audioCtx.currentTime;
 
-        // 1. HÖLLISCHER CHOR - dissonante "Stimmen"
-        const choirFreqs = [110, 116.5, 130.8, 138.6, 155.6, 164.8, 185, 196, 233, 277];
+        // 1. HIMMLISCHER CHOR → VERDAMMNIS
+        // Beginnt als Engel, wird zu Dämon
+        const choirFreqs = [220, 277, 330, 440, 554, 659]; // Himmlisch
+        const fallenFreqs = [110, 116.5, 130.8, 138.6, 155.6, 164.8]; // Verdammnis
         choirFreqs.forEach((f, i) => {
             const o = audioCtx.createOscillator();
             const g = audioCtx.createGain();
-            o.type = i % 3 === 0 ? 'sawtooth' : i % 3 === 1 ? 'square' : 'triangle';
+            o.type = 'sine'; // Engel = Sine
             o.frequency.setValueAtTime(f, t);
-            // Frequenz fällt langsam - wie fallender Engel
-            o.frequency.linearRampToValueAtTime(f * 0.3, t + 3);
-            g.gain.setValueAtTime(0.6, t);
+            // Fallen: Frequenz sinkt, wird dissonant
+            o.frequency.linearRampToValueAtTime(fallenFreqs[i], t + 0.5);
+            o.type = 'sawtooth'; // Wird zu Dämon
+            g.gain.setValueAtTime(0.3, t);
             g.gain.setValueAtTime(0.5, t + 0.5);
             g.gain.exponentialRampToValueAtTime(0.001, t + 3);
             o.connect(g); g.connect(jumpscareGain);
             o.start(t); o.stop(t + 3.1);
         });
 
-        // 2. SCHREI - lauter Noise-Burst mit Formanten
-        for (let s = 0; s < 3; s++) {
-            const delay = s * 0.3;
-            const bufSize = audioCtx.sampleRate * 1.2;
+        // 2. ENGELSSCHREI (Himmel → Hölle)
+        const scream = audioCtx.createOscillator();
+        const screamg = audioCtx.createGain();
+        scream.type = 'sine';
+        scream.frequency.setValueAtTime(880, t); // Hoher Engelston
+        scream.frequency.exponentialRampToValueAtTime(110, t + 1); // Fällt in die Tiefe
+        scream.type = 'sawtooth'; // Wird rau
+        screamg.gain.setValueAtTime(0.8, t);
+        screamg.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+        scream.connect(screamg);
+        screamg.connect(jumpscareGain);
+        scream.start(t);
+        scream.stop(t + 1.6);
+
+        // 3. FLÜGEL-GERÄUSCHE (Rauschen)
+        for (let w = 0; w < 3; w++) {
+            const bufSize = audioCtx.sampleRate * 0.8;
             const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
             const data = buf.getChannelData(0);
             for (let i = 0; i < bufSize; i++) {
-                const env = Math.exp(-i / (audioCtx.sampleRate * 0.5));
-                const formant = Math.sin(i / audioCtx.sampleRate * (800 + s * 400) * Math.PI * 2);
-                data[i] = (Math.random() * 2 - 1) * env * (0.5 + formant * 0.5);
+                const env = Math.exp(-i / (audioCtx.sampleRate * 0.3));
+                const flap = Math.sin(i / audioCtx.sampleRate * 30 * Math.PI * 2);
+                data[i] = (Math.random() * 2 - 1) * env * (0.3 + flap * 0.7);
             }
             const src = audioCtx.createBufferSource();
             src.buffer = buf;
-            const bp = audioCtx.createBiquadFilter();
-            bp.type = 'bandpass'; bp.frequency.value = 1000 + s * 500; bp.Q.value = 3;
-            const sg = audioCtx.createGain();
-            sg.gain.setValueAtTime(0.8, t + delay);
-            sg.gain.exponentialRampToValueAtTime(0.001, t + delay + 1.2);
-            const pan = audioCtx.createStereoPanner();
-            pan.pan.value = (s - 1) * 0.8;
-            src.connect(bp); bp.connect(sg); sg.connect(pan); pan.connect(jumpscareGain);
-            src.start(t + delay); src.stop(t + delay + 1.3);
+            const wg = audioCtx.createGain();
+            wg.gain.value = 0.6;
+            src.connect(wg);
+            wg.connect(jumpscareGain);
+            src.start(t + w * 0.2);
         }
 
-        // 3. TIEFES ERDBEBEN-DRÖHNEN
-        const drone = audioCtx.createOscillator();
-        const dg = audioCtx.createGain();
-        drone.type = 'sawtooth';
-        drone.frequency.setValueAtTime(30, t);
-        drone.frequency.linearRampToValueAtTime(15, t + 3);
-        dg.gain.setValueAtTime(1.0, t);
-        dg.gain.exponentialRampToValueAtTime(0.001, t + 3);
-        drone.connect(dg); dg.connect(jumpscareGain);
-        drone.start(t); drone.stop(t + 3.1);
-
-        // 4. GLOCKE DES GEFALLENEN
+        // 4. GLOCKE DES HIMMELS (Verdreckt)
         const bell = audioCtx.createOscillator();
         const bg = audioCtx.createGain();
         bell.type = 'sine';
-        bell.frequency.setValueAtTime(440, t);
-        bell.frequency.exponentialRampToValueAtTime(220, t + 2);
-        bg.gain.setValueAtTime(0.4, t);
+        bell.frequency.setValueAtTime(880, t); // Hohe Glocke
+        bell.frequency.exponentialRampToValueAtTime(55, t + 2); // Wird tief
+        bg.gain.setValueAtTime(0.5, t);
         bg.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
-        bell.connect(bg); bg.connect(jumpscareGain);
-        bell.start(t); bell.stop(t + 2.6);
+        bell.connect(bg);
+        bg.connect(jumpscareGain);
+        bell.start(t);
+        bell.stop(t + 2.6);
 
-        // 5. SUB-BASS IMPACT
-        const sub = audioCtx.createOscillator();
-        const subg = audioCtx.createGain();
-        sub.type = 'sine';
-        sub.frequency.setValueAtTime(50, t);
-        sub.frequency.exponentialRampToValueAtTime(10, t + 0.5);
-        subg.gain.setValueAtTime(1.0, t);
-        subg.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-        sub.connect(subg); subg.connect(jumpscareGain);
-        sub.start(t); sub.stop(t + 0.7);
+        // 5. SUB-BASS: DER FALL
+        const fall = audioCtx.createOscillator();
+        const fallg = audioCtx.createGain();
+        fall.type = 'sine';
+        fall.frequency.setValueAtTime(200, t);
+        fall.frequency.exponentialRampToValueAtTime(20, t + 1); // Tiefer Fall
+        fallg.gain.setValueAtTime(1.0, t);
+        fallg.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+        fall.connect(fallg);
+        fallg.connect(jumpscareGain);
+        fall.start(t);
+        fall.stop(t + 1.6);
     }
 
     function stopAllAudio() {
@@ -741,10 +924,12 @@
                 shake(6, 250);
                 spawnParticles(track.x, track.y, '#00ff00', 12);
                 showToast('⚠️ FALSCHE SPUR! -1', '#ff6600', 1500);
+                playFakeCollect(); // Warn-Sound
             } else {
                 // Real track
                 G.found++;
                 spawnParticles(track.x, track.y, '#ff0000', 10);
+                playBloodCollect(); // Blut-Sammel-Sound
 
                 if (G.found >= G.total) {
                     G.gameOver = true;
@@ -955,34 +1140,82 @@
         if (distM < PROXIMITY_DISTANCE && !G.gameOver) danger = Math.max(danger, (1 - distM / PROXIMITY_DISTANCE) * 0.5);
         if (G.teleportFlash > 0) danger = Math.max(danger, (G.teleportFlash / 800) * 0.7);
 
-        // Dark Pulse Realm - intensivere Effekte
+        // Dark Pulse Realm - INTENSIVIERTE Effekte
         if (G.darkPulseActive) {
-            // Lila Overlay
-            ctx.fillStyle = 'rgba(60, 0, 80, 0.4)';
+            const time = Date.now();
+            
+            // 1. DUNKLES LILA OVERLAY (pulsierend)
+            const pulseAlpha = 0.5 + Math.sin(time / 150) * 0.2;
+            ctx.fillStyle = `rgba(60, 0, 80, ${pulseAlpha})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Pulsierende Ränder
-            const pulseI = 0.3 + Math.sin(Date.now() / 200) * 0.2;
-            const dpg = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, canvas.height * 0.15,
-                canvas.width / 2, canvas.height / 2, canvas.height * 0.6);
-            dpg.addColorStop(0, 'transparent');
-            dpg.addColorStop(1, `rgba(100, 0, 150, ${pulseI})`);
-            ctx.fillStyle = dpg;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // 2. RUNDE WELLEN VOM ZENTRUM
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (let w = 0; w < 5; w++) {
+                const waveR = ((time / 50 + w * 100) % (canvas.height * 1.5));
+                const waveAlpha = 0.3 * (1 - waveR / (canvas.height * 1.5));
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, waveR, 0, TWO_PI);
+                ctx.strokeStyle = `rgba(150, 0, 200, ${waveAlpha})`;
+                ctx.lineWidth = 3 + Math.sin(time / 100) * 2;
+                ctx.stroke();
+            }
+            ctx.restore();
             
-            // Flackernde Partikel am Rand
-            if (Math.random() < 0.3) {
-                const side = Math.random() * 4 | 0;
-                const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
-                const py = side >= 2 ? Math.random() * canvas.height : (side === 0 ? 0 : canvas.height);
-                spawnParticles(px, py, '#8800ff', 2);
+            // 3. PULSIERENDE RÄNDER (mehrere Layer)
+            for (let layer = 0; layer < 3; layer++) {
+                const pulseI = 0.4 + Math.sin(time / (200 - layer * 50)) * 0.25;
+                const dpg = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, canvas.height * (0.1 + layer * 0.05),
+                    canvas.width / 2, canvas.height / 2, canvas.height * (0.6 + layer * 0.1)
+                );
+                dpg.addColorStop(0, 'transparent');
+                dpg.addColorStop(0.5, `rgba(100, 0, 150, ${pulseI * 0.5})`);
+                dpg.addColorStop(1, `rgba(180, 0, 220, ${pulseI})`);
+                ctx.fillStyle = dpg;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
-            // Taschenlampe flackert leicht
-            G.flashRadius = 260 - Math.random() * 40;
+            // 4. VERSTÄRKTE RAND-PARTIKEL
+            if (Math.random() < 0.5) {
+                const side = Math.floor(Math.random() * 4);
+                const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
+                const py = side >= 2 ? Math.random() * canvas.height : (side === 0 ? 0 : canvas.height);
+                // Mehr Partikel, verschiedene Farben
+                const colors = ['#8800ff', '#ff00ff', '#4400aa', '#aa00aa'];
+                spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 3 + Math.floor(Math.random() * 3));
+            }
+            
+            // 5. ZENTRALE ENERGIE-EXPLOSION
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const centerPulse = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, 200 + Math.sin(time / 100) * 50
+            );
+            centerPulse.addColorStop(0, `rgba(255, 0, 255, ${0.3 + Math.sin(time / 80) * 0.2})`);
+            centerPulse.addColorStop(0.5, 'rgba(100, 0, 150, 0.2)');
+            centerPulse.addColorStop(1, 'transparent');
+            ctx.fillStyle = centerPulse;
+            ctx.fillRect(canvas.width / 2 - 300, canvas.height / 2 - 300, 600, 600);
+            ctx.restore();
+            
+            // 6. GLITCH-LINIEN (horizontal)
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (let g = 0; g < 8; g++) {
+                const glitchY = (time / 5 + g * 150) % canvas.height;
+                const glitchAlpha = 0.15 + Math.random() * 0.1;
+                ctx.fillStyle = `rgba(255, 0, 255, ${glitchAlpha})`;
+                ctx.fillRect(0, glitchY, canvas.width, 2 + Math.random() * 3);
+            }
+            ctx.restore();
+            
+            // 7. VERSTÄRKTES TASCHENLAMPPEN-FLACKERN
+            G.flashRadius = FLASH_RADIUS - 30 - Math.random() * 60;
         } else {
-            G.flashRadius = 260;
+            G.flashRadius = FLASH_RADIUS;
         }
 
         // Red danger vignette

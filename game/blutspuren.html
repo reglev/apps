@@ -88,10 +88,6 @@
             0%, 100% { transform: scale(1) rotate(-2deg); }
             50% { transform: scale(1.1) rotate(2deg); }
         }
-            94% { opacity: 1; }
-            96% { opacity: 0.5; }
-            97% { opacity: 1; }
-        }
     </style>
 </head>
 <body>
@@ -128,6 +124,24 @@
         canvas.height = window.innerHeight;
     });
 
+    // ─── CONSTANTS ───
+    const FLASH_RADIUS = 260;
+    const HALF_CONE = Math.PI / 3.8;
+    const TELEPORT_COOLDOWN = 8000;
+    const LIGHTS_OUT_INTERVAL = 13000;
+    const LIGHTS_OUT_FLICKER = 3000;
+    const LIGHTS_OUT_DARK = 2000;
+    const DARK_PULSE_INTERVAL = 20000;
+    const DARK_PULSE_DURATION = 4000;
+    const PLAYER_RADIUS = 11;
+    const CATCH_DISTANCE = 28;
+    const COLLECT_DISTANCE = 35;
+    const PROXIMITY_DISTANCE = 200;
+    const SPAWN_MIN_DISTANCE = 400;
+    const TRACK_SPAWN_MIN_DISTANCE = 180;
+    const FAKE_TRACK_SPAWN_MIN_DISTANCE = 150;
+    const TWO_PI = Math.PI * 2;
+
     // ─── GAME STATE ───
     const G = {
         player: { x: 0, y: 0, speed: 3.2, angle: 0 },
@@ -136,13 +150,13 @@
         particles: [],
         shakeX: 0, shakeY: 0, shakeDur: 0,
         // Abilities
-        teleportTimer: 0, teleportCooldown: 8000, teleportFlash: 0,
+        teleportTimer: 0, teleportCooldown: TELEPORT_COOLDOWN, teleportFlash: 0,
         lightsOutTimer: 0, lightsOutPhase: 'none', lightsOutStart: 0,
         darkPulseTimer: 0, darkPulseActive: false,
         // Game
         startTime: 0, found: 0, total: 0,
         gameOver: false, won: false, started: false,
-        flashRadius: 260, flashCone: Math.PI / 3.8,
+        flashRadius: FLASH_RADIUS, flashCone: HALF_CONE * 2,
         // Toast
         toastTimer: 0
     };
@@ -250,7 +264,7 @@
 
     function updateProximityHeart(distance) {
         if (!audioCtx || !heartGain) return;
-        if (distance < 200) {
+        if (distance < PROXIMITY_DISTANCE) {
             const intensity = (1 - distance / 200) * 1.5;
             heartGain.gain.linearRampToValueAtTime(intensity, audioCtx.currentTime + 0.1);
             if (!proximityHeartActive) {
@@ -483,7 +497,7 @@
             ctx.globalAlpha = p.life;
             ctx.fillStyle = p.color;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, p.size * p.life, 0, TWO_PI);
             ctx.fill();
         });
         ctx.globalAlpha = 1;
@@ -545,7 +559,7 @@
         while (created < total) {
             const cx = 80 + Math.random() * (canvas.width - 160);
             const cy = 80 + Math.random() * (canvas.height - 160);
-            if (Math.hypot(cx - G.player.x, cy - G.player.y) < 180) continue;
+            if (Math.hypot(cx - G.player.x, cy - G.player.y) < TRACK_SPAWN_MIN_DISTANCE) continue;
 
             const cluster = Math.random() < 0.6 ? (Math.random() < 0.5 ? 2 : 3) : 1;
             const actual = Math.min(cluster, total - created);
@@ -574,7 +588,7 @@
             do {
                 fx = 60 + Math.random() * (canvas.width - 120);
                 fy = 60 + Math.random() * (canvas.height - 120);
-            } while (Math.hypot(fx - G.player.x, fy - G.player.y) < 150);
+            } while (Math.hypot(fx - G.player.x, fy - G.player.y) < FAKE_TRACK_SPAWN_MIN_DISTANCE);
             G.tracks.push({
                 x: fx, y: fy,
                 size: 10 + Math.random() * 16,
@@ -588,7 +602,7 @@
         do {
             G.monster.x = Math.random() * canvas.width;
             G.monster.y = Math.random() * canvas.height;
-        } while (Math.hypot(G.monster.x - G.player.x, G.monster.y - G.player.y) < 400);
+        } while (Math.hypot(G.monster.x - G.player.x, G.monster.y - G.player.y) < SPAWN_MIN_DISTANCE);
 
         document.getElementById('score').textContent = '0';
         document.getElementById('total').textContent = G.total;
@@ -666,7 +680,7 @@
         if (G.teleportFlash > 0) G.teleportFlash -= dt;
 
         // ── ABILITY: Lights Out (every 13s: 3s flicker + 2s dark) ──
-        if (G.lightsOutPhase === 'none' && now - G.lightsOutTimer > 13000) {
+        if (G.lightsOutPhase === 'none' && now - G.lightsOutTimer > LIGHTS_OUT_INTERVAL) {
             G.lightsOutPhase = 'flicker';
             G.lightsOutStart = now;
         }
@@ -681,13 +695,13 @@
         }
 
         // ── ABILITY: Dark Pulse Realm (every 20s for 4s) ──
-        if (!G.darkPulseActive && now - G.darkPulseTimer > 20000) {
+        if (!G.darkPulseActive && now - G.darkPulseTimer > DARK_PULSE_INTERVAL) {
             G.darkPulseActive = true;
             G.darkPulseTimer = now;
             shake(6, 400);
             startWhispers();
         }
-        if (G.darkPulseActive && now - G.darkPulseTimer > 4000) {
+        if (G.darkPulseActive && now - G.darkPulseTimer > DARK_PULSE_DURATION) {
             G.darkPulseActive = false;
             G.darkPulseTimer = now;
             stopWhispers();
@@ -697,7 +711,7 @@
         // Herzschlag basierend auf Monster-Nähe
         updateProximityHeart(md);
 
-        if (md < 28) {
+        if (md < CATCH_DISTANCE) {
             G.gameOver = true;
             G.won = false;
             shake(15, 500);
@@ -710,13 +724,13 @@
         G.tracks.forEach(track => {
             if (track.found) return;
             const d = Math.hypot(track.x - G.player.x, track.y - G.player.y);
-            if (d > 35) return;
+            if (d > COLLECT_DISTANCE) return;
 
             // Must be in flashlight cone
             const a = Math.atan2(track.y - G.player.y, track.x - G.player.x);
             let diff = a - G.player.angle;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= TWO_PI;
+            while (diff < -Math.PI) diff += TWO_PI;
             if (Math.abs(diff) > G.flashCone / 2) return;
 
             track.found = true;
@@ -938,7 +952,7 @@
         // ── Edge effects ──
         const distM = Math.hypot(G.monster.x - G.player.x, G.monster.y - G.player.y);
         let danger = 0;
-        if (distM < 200 && !G.gameOver) danger = Math.max(danger, (1 - distM / 200) * 0.5);
+        if (distM < PROXIMITY_DISTANCE && !G.gameOver) danger = Math.max(danger, (1 - distM / PROXIMITY_DISTANCE) * 0.5);
         if (G.teleportFlash > 0) danger = Math.max(danger, (G.teleportFlash / 800) * 0.7);
 
         // Dark Pulse Realm - intensivere Effekte

@@ -1273,40 +1273,68 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
-            // 4. VERSTÄRKTE RAND-PARTIKEL
-            if (Math.random() < 0.5) {
+            // 4. VERSTÄRKTE RAND-PARTIKEL (mehr Aktivität am Rand)
+            if (Math.random() < 0.6) {
                 const side = Math.floor(Math.random() * 4);
                 const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
                 const py = side >= 2 ? Math.random() * canvas.height : (side === 0 ? 0 : canvas.height);
-                // Mehr Partikel, verschiedene Farben
                 const colors = ['#8800ff', '#ff00ff', '#4400aa', '#aa00aa'];
-                spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 3 + Math.floor(Math.random() * 3));
+                spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 4 + Math.floor(Math.random() * 4));
             }
             
-            // 5. ZENTRALE ENERGIE-EXPLOSION
+            // 5. RAND-NEBEL (kriechender Dunst vom Rand)
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            const centerPulse = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, 0,
-                canvas.width / 2, canvas.height / 2, 200 + Math.sin(time / 100) * 50
-            );
-            centerPulse.addColorStop(0, `rgba(255, 0, 255, ${0.3 + Math.sin(time / 80) * 0.2})`);
-            centerPulse.addColorStop(0.5, 'rgba(100, 0, 150, 0.2)');
-            centerPulse.addColorStop(1, 'transparent');
-            ctx.fillStyle = centerPulse;
-            ctx.fillRect(canvas.width / 2 - 300, canvas.height / 2 - 300, 600, 600);
+            // Oberer Rand
+            const topFog = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.25);
+            topFog.addColorStop(0, `rgba(120, 0, 180, ${0.4 + Math.sin(time / 200) * 0.2})`);
+            topFog.addColorStop(1, 'transparent');
+            ctx.fillStyle = topFog;
+            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.25);
+            // Unterer Rand
+            const botFog = ctx.createLinearGradient(0, canvas.height, 0, canvas.height * 0.75);
+            botFog.addColorStop(0, `rgba(120, 0, 180, ${0.4 + Math.sin(time / 250 + 1) * 0.2})`);
+            botFog.addColorStop(1, 'transparent');
+            ctx.fillStyle = botFog;
+            ctx.fillRect(0, canvas.height * 0.75, canvas.width, canvas.height * 0.25);
+            // Linker Rand
+            const leftFog = ctx.createLinearGradient(0, 0, canvas.width * 0.2, 0);
+            leftFog.addColorStop(0, `rgba(100, 0, 160, ${0.35 + Math.sin(time / 300 + 2) * 0.15})`);
+            leftFog.addColorStop(1, 'transparent');
+            ctx.fillStyle = leftFog;
+            ctx.fillRect(0, 0, canvas.width * 0.2, canvas.height);
+            // Rechter Rand
+            const rightFog = ctx.createLinearGradient(canvas.width, 0, canvas.width * 0.8, 0);
+            rightFog.addColorStop(0, `rgba(100, 0, 160, ${0.35 + Math.sin(time / 300 + 3) * 0.15})`);
+            rightFog.addColorStop(1, 'transparent');
+            ctx.fillStyle = rightFog;
+            ctx.fillRect(canvas.width * 0.8, 0, canvas.width * 0.2, canvas.height);
             ctx.restore();
             
-            // 6. GLITCH-LINIEN (horizontal)
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
-            for (let g = 0; g < 8; g++) {
-                const glitchY = (time / 5 + g * 150) % canvas.height;
-                const glitchAlpha = 0.15 + Math.random() * 0.1;
-                ctx.fillStyle = `rgba(255, 0, 255, ${glitchAlpha})`;
-                ctx.fillRect(0, glitchY, canvas.width, 2 + Math.random() * 3);
+            // 6. RAND-BLITZE (zufällige kurze Lichtfetzen am Rand)
+            if (Math.random() < 0.15) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                const bSide = Math.floor(Math.random() * 4);
+                let bx, by, bw, bh;
+                if (bSide === 0) { bx = Math.random() * canvas.width; by = 0; bw = 40 + Math.random() * 80; bh = 5 + Math.random() * 15; }
+                else if (bSide === 1) { bx = Math.random() * canvas.width; by = canvas.height - 10; bw = 40 + Math.random() * 80; bh = 5 + Math.random() * 15; }
+                else if (bSide === 2) { bx = 0; by = Math.random() * canvas.height; bw = 5 + Math.random() * 15; bh = 40 + Math.random() * 80; }
+                else { bx = canvas.width - 10; by = Math.random() * canvas.height; bw = 5 + Math.random() * 15; bh = 40 + Math.random() * 80; }
+                ctx.fillStyle = `rgba(180, 0, 255, ${0.3 + Math.random() * 0.4})`;
+                ctx.fillRect(bx, by, bw, bh);
+                ctx.restore();
             }
-            ctx.restore();
+            
+            // 7. SUBTILE GLITCH-LINIEN (weniger, dünner, nur gelegentlich)
+            if (Math.random() < 0.3) {
+                ctx.save();
+                ctx.globalAlpha = 0.06 + Math.random() * 0.06;
+                const glitchY = Math.random() * canvas.height;
+                ctx.fillStyle = '#aa00ff';
+                ctx.fillRect(0, glitchY, canvas.width, 1);
+                ctx.restore();
+            }
             
             // 7. VERSTÄRKTES TASCHENLAMPPEN-FLACKERN
             G.flashRadius = FLASH_RADIUS - 30 - Math.random() * 60;

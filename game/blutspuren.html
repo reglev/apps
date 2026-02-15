@@ -1273,68 +1273,106 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             
-            // 4. VERSTÄRKTE RAND-PARTIKEL (mehr Aktivität am Rand)
-            if (Math.random() < 0.6) {
+            // 4. RAND-PARTIKEL
+            if (Math.random() < 0.4) {
                 const side = Math.floor(Math.random() * 4);
                 const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
                 const py = side >= 2 ? Math.random() * canvas.height : (side === 0 ? 0 : canvas.height);
-                const colors = ['#8800ff', '#ff00ff', '#4400aa', '#aa00aa'];
-                spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 4 + Math.floor(Math.random() * 4));
+                const colors = ['#8800ff', '#4400aa', '#660088'];
+                spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 2 + Math.floor(Math.random() * 3));
             }
             
-            // 5. RAND-NEBEL (kriechender Dunst vom Rand)
+            // 5. ORGANISCHE RANKEN am Bildschirmrand
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            // Oberer Rand
-            const topFog = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.25);
-            topFog.addColorStop(0, `rgba(120, 0, 180, ${0.4 + Math.sin(time / 200) * 0.2})`);
-            topFog.addColorStop(1, 'transparent');
-            ctx.fillStyle = topFog;
-            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.25);
-            // Unterer Rand
-            const botFog = ctx.createLinearGradient(0, canvas.height, 0, canvas.height * 0.75);
-            botFog.addColorStop(0, `rgba(120, 0, 180, ${0.4 + Math.sin(time / 250 + 1) * 0.2})`);
-            botFog.addColorStop(1, 'transparent');
-            ctx.fillStyle = botFog;
-            ctx.fillRect(0, canvas.height * 0.75, canvas.width, canvas.height * 0.25);
-            // Linker Rand
-            const leftFog = ctx.createLinearGradient(0, 0, canvas.width * 0.2, 0);
-            leftFog.addColorStop(0, `rgba(100, 0, 160, ${0.35 + Math.sin(time / 300 + 2) * 0.15})`);
-            leftFog.addColorStop(1, 'transparent');
-            ctx.fillStyle = leftFog;
-            ctx.fillRect(0, 0, canvas.width * 0.2, canvas.height);
-            // Rechter Rand
-            const rightFog = ctx.createLinearGradient(canvas.width, 0, canvas.width * 0.8, 0);
-            rightFog.addColorStop(0, `rgba(100, 0, 160, ${0.35 + Math.sin(time / 300 + 3) * 0.15})`);
-            rightFog.addColorStop(1, 'transparent');
-            ctx.fillStyle = rightFog;
-            ctx.fillRect(canvas.width * 0.8, 0, canvas.width * 0.2, canvas.height);
+            const ts = time / 1000; // Sekunden für langsamere Animation
+            
+            // Ranken-Funktion: zeichnet eine organische Ranke
+            function drawVine(startX, startY, dirX, dirY, length, seed) {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                let cx = startX, cy = startY;
+                const segments = 12;
+                for (let i = 0; i < segments; i++) {
+                    const t = i / segments;
+                    // Organische Wellenbewegung
+                    const wave1 = Math.sin(ts * 0.8 + seed + t * 4) * (20 + t * 15);
+                    const wave2 = Math.sin(ts * 1.2 + seed * 2.3 + t * 6) * (10 + t * 8);
+                    const perpX = -dirY;
+                    const perpY = dirX;
+                    cx += dirX * (length / segments);
+                    cy += dirY * (length / segments);
+                    const wobbleX = cx + perpX * (wave1 + wave2);
+                    const wobbleY = cy + perpY * (wave1 + wave2);
+                    ctx.lineTo(wobbleX, wobbleY);
+                }
+                // Breite variiert: dick am Rand, dünn zur Mitte
+                const alpha = 0.25 + Math.sin(ts + seed) * 0.1;
+                ctx.strokeStyle = `rgba(120, 0, 180, ${alpha})`;
+                ctx.lineWidth = 3 + Math.sin(ts * 0.5 + seed) * 1.5;
+                ctx.stroke();
+                
+                // Dünnere Neben-Ranke
+                ctx.beginPath();
+                cx = startX; cy = startY;
+                ctx.moveTo(startX, startY);
+                for (let i = 0; i < segments; i++) {
+                    const t = i / segments;
+                    const wave = Math.sin(ts * 1.1 + seed * 1.7 + t * 5) * (15 + t * 12);
+                    cx += dirX * (length / segments) * 0.8;
+                    cy += dirY * (length / segments) * 0.8;
+                    const perpX = -dirY;
+                    const perpY = dirX;
+                    ctx.lineTo(cx + perpX * wave, cy + perpY * wave);
+                }
+                ctx.strokeStyle = `rgba(80, 0, 140, ${alpha * 0.6})`;
+                ctx.lineWidth = 1.5 + Math.sin(ts * 0.7 + seed * 3) * 0.8;
+                ctx.stroke();
+            }
+            
+            const w = canvas.width, h = canvas.height;
+            const vineLen = Math.min(w, h) * 0.25;
+            
+            // Linker Rand: Ranken wachsen nach rechts
+            for (let v = 0; v < 6; v++) {
+                const yPos = h * (0.1 + v * 0.15) + Math.sin(ts * 0.3 + v) * 20;
+                drawVine(0, yPos, 1, 0, vineLen + Math.sin(ts * 0.4 + v * 2) * 30, v * 1.1);
+            }
+            // Rechter Rand: Ranken wachsen nach links
+            for (let v = 0; v < 6; v++) {
+                const yPos = h * (0.05 + v * 0.15) + Math.sin(ts * 0.35 + v + 5) * 20;
+                drawVine(w, yPos, -1, 0, vineLen + Math.sin(ts * 0.45 + v * 2.3) * 30, v * 1.3 + 10);
+            }
+            // Oberer Rand: Ranken wachsen nach unten
+            for (let v = 0; v < 5; v++) {
+                const xPos = w * (0.1 + v * 0.18) + Math.sin(ts * 0.25 + v + 3) * 25;
+                drawVine(xPos, 0, 0, 1, vineLen * 0.8 + Math.sin(ts * 0.5 + v * 1.7) * 25, v * 1.5 + 20);
+            }
+            // Unterer Rand: Ranken wachsen nach oben
+            for (let v = 0; v < 5; v++) {
+                const xPos = w * (0.15 + v * 0.18) + Math.sin(ts * 0.3 + v + 7) * 25;
+                drawVine(xPos, h, 0, -1, vineLen * 0.8 + Math.sin(ts * 0.55 + v * 1.9) * 25, v * 1.7 + 30);
+            }
             ctx.restore();
             
-            // 6. RAND-BLITZE (zufällige kurze Lichtfetzen am Rand)
-            if (Math.random() < 0.15) {
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                const bSide = Math.floor(Math.random() * 4);
-                let bx, by, bw, bh;
-                if (bSide === 0) { bx = Math.random() * canvas.width; by = 0; bw = 40 + Math.random() * 80; bh = 5 + Math.random() * 15; }
-                else if (bSide === 1) { bx = Math.random() * canvas.width; by = canvas.height - 10; bw = 40 + Math.random() * 80; bh = 5 + Math.random() * 15; }
-                else if (bSide === 2) { bx = 0; by = Math.random() * canvas.height; bw = 5 + Math.random() * 15; bh = 40 + Math.random() * 80; }
-                else { bx = canvas.width - 10; by = Math.random() * canvas.height; bw = 5 + Math.random() * 15; bh = 40 + Math.random() * 80; }
-                ctx.fillStyle = `rgba(180, 0, 255, ${0.3 + Math.random() * 0.4})`;
-                ctx.fillRect(bx, by, bw, bh);
-                ctx.restore();
+            // 6. RAND-NEBEL (subtiler Dunst)
+            ctx.save();
+            for (let side = 0; side < 4; side++) {
+                let fog;
+                if (side === 0) { fog = ctx.createLinearGradient(0, 0, 0, h * 0.15); ctx.fillStyle = fog; }
+                else if (side === 1) { fog = ctx.createLinearGradient(0, h, 0, h * 0.85); ctx.fillStyle = fog; }
+                else if (side === 2) { fog = ctx.createLinearGradient(0, 0, w * 0.12, 0); ctx.fillStyle = fog; }
+                else { fog = ctx.createLinearGradient(w, 0, w * 0.88, 0); ctx.fillStyle = fog; }
+                const fogAlpha = 0.2 + Math.sin(time / (300 + side * 50) + side) * 0.1;
+                fog.addColorStop(0, `rgba(80, 0, 120, ${fogAlpha})`);
+                fog.addColorStop(1, 'transparent');
+                ctx.fillStyle = fog;
+                if (side === 0) ctx.fillRect(0, 0, w, h * 0.15);
+                else if (side === 1) ctx.fillRect(0, h * 0.85, w, h * 0.15);
+                else if (side === 2) ctx.fillRect(0, 0, w * 0.12, h);
+                else ctx.fillRect(w * 0.88, 0, w * 0.12, h);
             }
-            
-            // 7. SUBTILE GLITCH-LINIEN (weniger, dünner, nur gelegentlich)
-            if (Math.random() < 0.3) {
-                ctx.save();
-                ctx.globalAlpha = 0.06 + Math.random() * 0.06;
-                const glitchY = Math.random() * canvas.height;
-                ctx.fillStyle = '#aa00ff';
-                ctx.fillRect(0, glitchY, canvas.width, 1);
-                ctx.restore();
-            }
+            ctx.restore();
             
             // 7. VERSTÄRKTES TASCHENLAMPPEN-FLACKERN
             G.flashRadius = FLASH_RADIUS - 30 - Math.random() * 60;

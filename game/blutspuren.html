@@ -321,8 +321,10 @@
         gameOver: false, won: false, started: false,
         flashRadius: FLASH_RADIUS, flashCone: HALF_CONE * 2,
         // Toast
-        toastTimer: 0
-    };
+        toastTimer: 0,
+        // Exit gate
+        gate: { x: 0, y: 0, active: false, radius: 60 }
+    }; };
 
     // ─── AUDIO ───
     let audioCtx = null, masterGain = null, organGain = null, heartGain = null, whisperGain = null, jumpscareGain = null;
@@ -568,6 +570,47 @@
         humg.connect(masterGain);
         hum.start(t);
         hum.stop(t + 0.55);
+    }
+
+    // ─── 🚪 TOR ERSCHEINT SOUND ───
+    function playGateAppearsSound() {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime;
+        
+        // 1. Mystisches Öffnen
+        const gate = audioCtx.createOscillator();
+        const gg = audioCtx.createGain();
+        gate.type = 'sine';
+        gate.frequency.setValueAtTime(220, t);
+        gate.frequency.exponentialRampToValueAtTime(880, t + 1.5);
+        gg.gain.setValueAtTime(0, t);
+        gg.gain.linearRampToValueAtTime(0.5, t + 0.3);
+        gg.gain.exponentialRampToValueAtTime(0.001, t + 2);
+        
+        const gf = audioCtx.createBiquadFilter();
+        gf.type = 'lowpass';
+        gf.frequency.value = 1200;
+        
+        gate.connect(gf);
+        gf.connect(gg);
+        gg.connect(masterGain);
+        gate.start(t);
+        gate.stop(t + 2.1);
+        
+        // 2. Glockenklang
+        for (let i = 0; i < 3; i++) {
+            const bell = audioCtx.createOscillator();
+            const bg = audioCtx.createGain();
+            bell.type = 'sine';
+            bell.frequency.value = 660 * (i + 1);
+            bg.gain.setValueAtTime(0, t + i * 0.1);
+            bg.gain.linearRampToValueAtTime(0.2, t + i * 0.1 + 0.05);
+            bg.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 1);
+            bell.connect(bg);
+            bg.connect(masterGain);
+            bell.start(t + i * 0.1);
+            bell.stop(t + i * 0.1 + 1.1);
+        }
     }
 
     // ─── ⚠️ FAKE SPUR SAMMEL-SOUND ───
@@ -825,6 +868,11 @@
         G.darkPulseActive = false;
         G.startTime = now;
 
+        // Reset gate
+        G.gate.active = false;
+        G.gate.x = 0;
+        G.gate.y = 0;
+
         // Player center
         G.player.x = canvas.width / 2;
         G.player.y = canvas.height / 2;
@@ -999,6 +1047,18 @@
             showMessage('💀 DU WURDEST ERWISCHT!<br><small>R = Neustart</small>');
         }
 
+        // Check Gate collision (Sieg wenn Spieler das Tor erreicht)
+        if (G.gate.active) {
+            const gateDist = Math.hypot(G.player.x - G.gate.x, G.player.y - G.gate.y);
+            if (gateDist < G.gate.radius) {
+                G.gameOver = true;
+                G.won = true;
+                const secs = Math.floor((Date.now() - G.startTime) / 1000);
+                stopAllAudio();
+                showMessage(`🏆 ENTKOMMEN DURCH DAS TOR!<br><small>${secs}s — R = Neustart</small>`, '#00ff00');
+            }
+        }
+
         // Collect tracks
         G.tracks.forEach(track => {
             if (track.found) return;
@@ -1027,12 +1087,24 @@
                 spawnParticles(track.x, track.y, '#ff0000', 10);
                 playBloodCollect(); // Blut-Sammel-Sound
 
-                if (G.found >= G.total) {
-                    G.gameOver = true;
-                    G.won = true;
-                    const secs = Math.floor((Date.now() - G.startTime) / 1000);
-                    stopAllAudio();
-                    showMessage(`🏆 ENTKOMMEN!<br><small>${secs}s — R = Neustart</small>`, '#00ff00');
+                // Wenn alle Spuren gefunden -> Tor erscheint
+                if (G.found >= G.total && !G.gate.active) {
+                    G.gate.active = true;
+                    // Tor an zufälliger Position spawnen (nicht zu nah am Monster oder Spieler)
+                    let gateX, gateY;
+                    let attempts = 0;
+                    do {
+                        gateX = 100 + Math.random() * (canvas.width - 200);
+                        gateY = 100 + Math.random() * (canvas.height - 200);
+                        attempts++;
+                    } while ((Math.hypot(gateX - G.player.x, gateY - G.player.y) < 200 ||
+                             Math.hypot(gateX - G.monster.x, gateY - G.monster.y) < 300) &&
+                            attempts < 50);
+                    G.gate.x = gateX;
+                    G.gate.y = gateY;
+                    shake(8, 600);
+                    showToast('🚪 DAS TOR IST OFFEN! FLIEHE!', '#ff00ff', 3000);
+                    playGateAppearsSound();
                 }
             }
             document.getElementById('score').textContent = G.found;
@@ -1229,6 +1301,87 @@
 
         // ── Particles ──
         renderParticles();
+
+        // ── Exit Gate ──
+        if (G.gate.active) {
+            const time = Date.now() / 1000;
+            const gx = G.gate.x, gy = G.gate.y;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            
+            // Äußerer Glühring (pulsierend)
+            const outerRadius = G.gate.radius + 20 + Math.sin(time * 3) * 10;
+            const outerGlow = ctx.createRadialGradient(gx, gy, G.gate.radius, gx, gy, outerRadius);
+            outerGlow.addColorStop(0, 'rgba(100, 0, 200, 0.4)');
+            outerGlow.addColorStop(0.5, 'rgba(150, 0, 255, 0.2)');
+            outerGlow.addColorStop(1, 'transparent');
+            ctx.fillStyle = outerGlow;
+            ctx.beginPath();
+            ctx.arc(gx, gy, outerRadius, 0, TWO_PI);
+            ctx.fill();
+            
+            // Innerer starker Glühring
+            const innerGlow = ctx.createRadialGradient(gx, gy, 10, gx, gy, G.gate.radius);
+            innerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+            innerGlow.addColorStop(0.2, 'rgba(200, 100, 255, 0.8)');
+            innerGlow.addColorStop(0.5, 'rgba(150, 0, 200, 0.5)');
+            innerGlow.addColorStop(1, 'rgba(80, 0, 150, 0.2)');
+            ctx.fillStyle = innerGlow;
+            ctx.beginPath();
+            ctx.arc(gx, gy, G.gate.radius, 0, TWO_PI);
+            ctx.fill();
+            
+            // Drehende Tor-Struktur (8 Linien)
+            ctx.strokeStyle = `rgba(255, 200, 255, ${0.6 + Math.sin(time * 5) * 0.3})`;
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * TWO_PI + time * 2;
+                const r1 = 20 + Math.sin(time * 4 + i) * 5;
+                const r2 = G.gate.radius - 10;
+                ctx.beginPath();
+                ctx.moveTo(gx + Math.cos(angle) * r1, gy + Math.sin(angle) * r1);
+                ctx.lineTo(gx + Math.cos(angle) * r2, gy + Math.sin(angle) * r2);
+                ctx.stroke();
+            }
+            
+            // Zentrales Symbol (stilisiertes Portal)
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + Math.sin(time * 8) * 0.2})`;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * TWO_PI + time;
+                const r = 15 + Math.sin(time * 6 + i * 2) * 5;
+                const px = gx + Math.cos(angle) * r;
+                const py = gy + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // "TOR" Text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = '#ff00ff';
+            ctx.shadowBlur = 15;
+            ctx.fillText('TOR', gx, gy - 35);
+            ctx.shadowBlur = 0;
+            
+            // Anzeige-Richtungspfeil wenn weit weg
+            const distToGate = Math.hypot(G.player.x - gx, G.player.y - gy);
+            if (distToGate > 200) {
+                ctx.strokeStyle = 'rgba(255, 0, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.arc(gx, gy, Math.min(distToGate / 2, 100), 0, TWO_PI);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            ctx.restore();
+        }
 
         // ── Edge effects ──
         const distM = Math.hypot(G.monster.x - G.player.x, G.monster.y - G.player.y);

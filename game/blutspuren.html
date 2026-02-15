@@ -223,6 +223,99 @@
             0% { opacity: 0; letter-spacing: 30px; }
             100% { opacity: 1; letter-spacing: 8px; }
         }
+
+        /* EPILEPSY WARNING */
+        .epilepsy-warning {
+            color: #ff6600; font-size: 12px; margin-top: 20px;
+            padding: 8px 16px; border: 1px solid #ff660044;
+            background: rgba(255, 102, 0, 0.05); max-width: 400px;
+        }
+
+        /* VICTORY overlay */
+        #victory {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: none;
+            align-items: center; justify-content: center;
+            flex-direction: column; overflow: hidden;
+        }
+        #victory.active { display: flex; }
+        #victory .victory-container {
+            position: relative; width: 100vw; height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        #victory .restored-halo {
+            width: 25vmin; height: 25vmin;
+            border: 4px solid #ffdd44;
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ffdd44, 0 0 80px #ffaa00, 0 0 120px #ff880044, inset 0 0 30px #ffdd4444;
+            animation: haloRestore 1.5s ease-out forwards, haloPulse 2s 1.5s infinite;
+            opacity: 0;
+        }
+        #victory .light-rays {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120vmax; height: 120vmax; opacity: 0;
+            animation: raysAppear 2s 0.5s ease-out forwards;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg, rgba(255,220,100,0.15) 5deg, transparent 10deg,
+                transparent 30deg, rgba(255,220,100,0.1) 35deg, transparent 40deg,
+                transparent 60deg, rgba(255,220,100,0.12) 65deg, transparent 70deg,
+                transparent 90deg, rgba(255,220,100,0.08) 95deg, transparent 100deg,
+                transparent 120deg, rgba(255,220,100,0.15) 125deg, transparent 130deg,
+                transparent 150deg, rgba(255,220,100,0.1) 155deg, transparent 160deg,
+                transparent 180deg, rgba(255,220,100,0.12) 185deg, transparent 190deg,
+                transparent 210deg, rgba(255,220,100,0.08) 215deg, transparent 220deg,
+                transparent 240deg, rgba(255,220,100,0.15) 245deg, transparent 250deg,
+                transparent 270deg, rgba(255,220,100,0.1) 275deg, transparent 280deg,
+                transparent 300deg, rgba(255,220,100,0.12) 305deg, transparent 310deg,
+                transparent 340deg, rgba(255,220,100,0.08) 345deg, transparent 350deg
+            );
+            animation: raysAppear 2s 0.5s ease-out forwards, raysSpin 20s 0.5s linear infinite;
+        }
+        #victory .victory-text {
+            position: absolute; top: 62%;
+            font-size: 5vmin; color: #ffdd44;
+            text-shadow: 0 0 20px #ffaa00, 0 0 40px #ff880088;
+            letter-spacing: 12px; opacity: 0;
+            animation: victoryTextReveal 1s 1s ease-out forwards;
+        }
+        #victory .victory-stats {
+            position: absolute; top: 72%;
+            font-size: 2.2vmin; color: #ccaa44;
+            text-shadow: 0 0 10px #ffaa0066;
+            text-align: center; line-height: 2;
+            opacity: 0;
+            animation: victoryTextReveal 0.8s 2s ease-out forwards;
+        }
+        #victory .victory-restart {
+            position: absolute; bottom: 8%;
+            font-size: 2vmin; color: #887733;
+            opacity: 0;
+            animation: victoryTextReveal 0.5s 3s ease-out forwards;
+        }
+        @keyframes haloRestore {
+            0% { opacity: 0; transform: scale(0.1) rotate(-180deg); border-color: #880000; box-shadow: 0 0 40px #ff0000; }
+            50% { opacity: 0.8; border-color: #ff8800; }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); border-color: #ffdd44; box-shadow: 0 0 40px #ffdd44, 0 0 80px #ffaa00, 0 0 120px #ff880044, inset 0 0 30px #ffdd4444; }
+        }
+        @keyframes haloPulse {
+            0%, 100% { box-shadow: 0 0 40px #ffdd44, 0 0 80px #ffaa00, 0 0 120px #ff880044; }
+            50% { box-shadow: 0 0 60px #ffee66, 0 0 100px #ffbb22, 0 0 160px #ffaa0066; }
+        }
+        @keyframes raysAppear {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes raysSpin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes victoryTextReveal {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -238,6 +331,7 @@
             WASD / Pfeiltasten = Bewegen<br>
             R = Neustart
         </p>
+        <div class="epilepsy-warning">&#x26A0;&#xFE0F; EPILEPSIE-WARNUNG: Dieses Spiel enth&auml;lt schnelle Lichtblitze, Flackereffekte und pl&ouml;tzliche visuelle Reize, die bei empfindlichen Personen epileptische Anf&auml;lle ausl&ouml;sen k&ouml;nnen.</div>
         <button class="start-btn" id="startBtn">&#x25B6; SPIELEN</button>
     </div>
     <div id="ui">Spuren: <span id="score">0</span> / <span id="total">0</span> | Verbleibend: <span id="remaining">0</span></div>
@@ -261,6 +355,15 @@
                 </div>
             </div>
             <div class="death-text">ER HAT DICH GEFUNDEN</div>
+        </div>
+    </div>
+    <div id="victory">
+        <div class="victory-container">
+            <div class="light-rays"></div>
+            <div class="restored-halo"></div>
+            <div class="victory-text">DU BIST ENTKOMMEN</div>
+            <div class="victory-stats" id="victoryStats"></div>
+            <div class="victory-restart">R = Neustart</div>
         </div>
     </div>
     <canvas id="game"></canvas>
@@ -317,6 +420,9 @@
             this.flashCone = HALF_CONE * 2;
             this.toastTimer = 0;
             this.gate = { x: 0, y: 0, active: false, radius: 60 };
+            this.victoryTime = 0;
+            this.victoryActive = false;
+            this.minMonsterDist = Infinity;
         }
 
         reset(canvasW, canvasH) {
@@ -341,6 +447,9 @@
             this.gate.active = false;
             this.gate.x = 0;
             this.gate.y = 0;
+            this.victoryTime = 0;
+            this.victoryActive = false;
+            this.minMonsterDist = Infinity;
 
             this.player.x = canvasW / 2;
             this.player.y = canvasH / 2;
@@ -359,6 +468,7 @@
             this.heartGain = null;
             this.whisperGain = null;
             this.jumpscareGain = null;
+            this.victoryGain = null;
             this.started = false;
         }
 
@@ -385,6 +495,10 @@
             this.jumpscareGain = this.ctx.createGain();
             this.jumpscareGain.gain.value = 1.0;
             this.jumpscareGain.connect(this.ctx.destination);
+
+            this.victoryGain = this.ctx.createGain();
+            this.victoryGain.gain.value = 1.0;
+            this.victoryGain.connect(this.ctx.destination);
 
             this.started = true;
         }
@@ -858,6 +972,184 @@
     }
 
     // ════════════════════════════════════════
+    // 8b. VictorySystem
+    // ════════════════════════════════════════
+    class VictorySystem {
+        constructor(audio) {
+            this.audio = audio;
+        }
+
+        trigger(state) {
+            state.victoryTime = Date.now();
+            state.victoryActive = true;
+            this.showVisual(state);
+            this.playAudio();
+        }
+
+        showVisual(state) {
+            const secs = Math.floor((Date.now() - state.startTime) / 1000);
+            const closest = Math.max(1, Math.floor(state.minMonsterDist));
+            const fakes = state.tracks.filter(t => t.isFake && t.found).length;
+
+            // Delay overlay to let canvas effects play first
+            setTimeout(() => {
+                const el = document.getElementById('victory');
+                el.style.display = 'flex';
+                el.classList.add('active');
+                el.style.background = '#000';
+
+                // Golden flash sequence
+                let flashes = 0;
+                const flashInterval = setInterval(() => {
+                    const phase = flashes % 4;
+                    if (phase === 0) el.style.background = '#1a1000';
+                    else if (phase === 1) el.style.background = '#000';
+                    else if (phase === 2) el.style.background = '#332200';
+                    else el.style.background = '#0a0800';
+                    flashes++;
+                    if (flashes > 8) {
+                        clearInterval(flashInterval);
+                        el.style.background = '#000';
+                    }
+                }, 120);
+
+                // Stats
+                const statsEl = document.getElementById('victoryStats');
+                statsEl.innerHTML =
+                    `Zeit: ${secs}s<br>` +
+                    `Spuren gesammelt: ${state.found} / ${state.total}<br>` +
+                    `Falsche Spuren ber&uuml;hrt: ${fakes}<br>` +
+                    `Knappste Begegnung: ${closest}px`;
+            }, 1800);
+        }
+
+        playAudio() {
+            if (!this.audio.ctx) return;
+            const now = this.audio.currentTime;
+            const vg = this.audio.victoryGain;
+
+            // 1. AUFSTEIGENDER ENGELSCHOR (Gegenteil vom Jumpscare-Fall)
+            const choirFreqs = [220, 277, 330, 440, 554, 659, 880];
+            choirFreqs.forEach((freq, idx) => {
+                const osc = this.audio.createOscillator();
+                const gain = this.audio.createGain();
+                osc.type = 'sine';
+                // Startet tief, steigt auf
+                osc.frequency.setValueAtTime(freq * 0.5, now);
+                osc.frequency.linearRampToValueAtTime(freq, now + 0.8);
+                osc.frequency.linearRampToValueAtTime(freq * 1.2, now + 3);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.3 + idx * 0.1);
+                gain.gain.setValueAtTime(0.25, now + 2);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 5);
+                osc.connect(gain); gain.connect(vg);
+                osc.start(now + idx * 0.08); osc.stop(now + 5.1);
+            });
+
+            // 2. Quinte-Obertöne (himmlisch)
+            [330, 440, 554, 660, 880].forEach((freq, idx) => {
+                const osc = this.audio.createOscillator();
+                const gain = this.audio.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq * 1.5;
+                gain.gain.setValueAtTime(0, now + 0.5);
+                gain.gain.linearRampToValueAtTime(0.08, now + 1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 4);
+                osc.connect(gain); gain.connect(vg);
+                osc.start(now + 0.5 + idx * 0.05); osc.stop(now + 4.1);
+            });
+
+            // 3. KASKADIERENDE GLOCKEN (aufsteigend)
+            const bellFreqs = [523, 659, 784, 1047, 1319, 1568, 2093];
+            bellFreqs.forEach((freq, idx) => {
+                const bell = this.audio.createOscillator();
+                const bellGain = this.audio.createGain();
+                bell.type = 'sine';
+                bell.frequency.value = freq;
+                const startT = now + 0.3 + idx * 0.15;
+                bellGain.gain.setValueAtTime(0, startT);
+                bellGain.gain.linearRampToValueAtTime(0.3, startT + 0.02);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, startT + 1.5);
+                bell.connect(bellGain); bellGain.connect(vg);
+                bell.start(startT); bell.stop(startT + 1.6);
+
+                // Oberton pro Glocke
+                const ot = this.audio.createOscillator();
+                const otg = this.audio.createGain();
+                ot.type = 'sine';
+                ot.frequency.value = freq * 2.76;
+                otg.gain.setValueAtTime(0, startT);
+                otg.gain.linearRampToValueAtTime(0.06, startT + 0.01);
+                otg.gain.exponentialRampToValueAtTime(0.001, startT + 0.8);
+                ot.connect(otg); otg.connect(vg);
+                ot.start(startT); ot.stop(startT + 0.9);
+            });
+
+            // 4. LICHT-RAUSCHEN (anschwellend)
+            const rushDur = 3;
+            const rushBuf = this.audio.createBuffer(2, this.audio.sampleRate * rushDur, this.audio.sampleRate);
+            for (let ch = 0; ch < 2; ch++) {
+                const data = rushBuf.getChannelData(ch);
+                for (let i = 0; i < data.length; i++) {
+                    const env = Math.sin((i / data.length) * Math.PI);
+                    const shimmer = 0.5 + 0.5 * Math.sin(i / this.audio.sampleRate * 20 * Math.PI * 2);
+                    data[i] = (Math.random() * 2 - 1) * env * shimmer * 0.3;
+                }
+            }
+            const rushSrc = this.audio.createBufferSource();
+            rushSrc.buffer = rushBuf;
+            const rushFilter = this.audio.createBiquadFilter();
+            rushFilter.type = 'highpass';
+            rushFilter.frequency.value = 2000;
+            rushFilter.frequency.linearRampToValueAtTime(8000, now + rushDur);
+            const rushGain = this.audio.createGain();
+            rushGain.gain.setValueAtTime(0, now);
+            rushGain.gain.linearRampToValueAtTime(0.4, now + 1);
+            rushGain.gain.exponentialRampToValueAtTime(0.001, now + rushDur);
+            rushSrc.connect(rushFilter);
+            rushFilter.connect(rushGain);
+            rushGain.connect(vg);
+            rushSrc.start(now); rushSrc.stop(now + rushDur + 0.1);
+
+            // 5. SUB-BASS AUFSTIEG (Gegenteil vom Fall)
+            const rise = this.audio.createOscillator();
+            const riseGain = this.audio.createGain();
+            rise.type = 'sine';
+            rise.frequency.setValueAtTime(30, now);
+            rise.frequency.exponentialRampToValueAtTime(120, now + 2);
+            riseGain.gain.setValueAtTime(0.6, now);
+            riseGain.gain.linearRampToValueAtTime(0.8, now + 1);
+            riseGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+            rise.connect(riseGain); riseGain.connect(vg);
+            rise.start(now); rise.stop(now + 2.6);
+
+            // 6. FINALER AKKORD (verzögert, majestätisch)
+            setTimeout(() => {
+                if (!this.audio.ctx) return;
+                const t2 = this.audio.currentTime;
+                [261.6, 329.6, 392, 523.3, 659.3].forEach((freq, idx) => {
+                    const osc = this.audio.createOscillator();
+                    const gain = this.audio.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0, t2);
+                    gain.gain.linearRampToValueAtTime(0.2, t2 + 0.1);
+                    gain.gain.setValueAtTime(0.15, t2 + 2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t2 + 4);
+                    osc.connect(gain); gain.connect(vg);
+                    osc.start(t2); osc.stop(t2 + 4.1);
+                });
+            }, 1800);
+        }
+
+        hide() {
+            const el = document.getElementById('victory');
+            el.classList.remove('active');
+            el.style.display = 'none';
+        }
+    }
+
+    // ════════════════════════════════════════
     // 9. InputManager
     // ════════════════════════════════════════
     class InputManager {
@@ -1137,17 +1429,19 @@
     // 14. CollisionSystem
     // ════════════════════════════════════════
     class CollisionSystem {
-        constructor(state, particles, jumpscare, heartbeat, canvas) {
+        constructor(state, particles, jumpscare, heartbeat, victory, canvas) {
             this.state = state;
             this.particles = particles;
             this.jumpscare = jumpscare;
             this.heartbeat = heartbeat;
+            this.victory = victory;
             this.canvas = canvas;
         }
 
         check() {
             const s = this.state;
             const monsterDist = Math.hypot(s.player.x - s.monster.x, s.player.y - s.monster.y);
+            if (monsterDist < s.minMonsterDist) s.minMonsterDist = monsterDist;
 
             this.heartbeat.updateProximity(monsterDist);
             this.checkMonsterCatch(monsterDist);
@@ -1173,8 +1467,7 @@
             if (gateDist < s.gate.radius) {
                 s.gameOver = true;
                 s.won = true;
-                const secs = Math.floor((Date.now() - s.startTime) / 1000);
-                UI.showMessage(`&#x1F3C6; ENTKOMMEN DURCH DAS TOR!<br><small>${secs}s &mdash; R = Neustart</small>`, '#00ff00');
+                this.victory.trigger(s);
             }
         }
 
@@ -1231,6 +1524,13 @@
 
         render(ctx, canvas) {
             const s = this.state;
+
+            // Victory canvas animation
+            if (s.victoryActive) {
+                this.renderVictoryCanvas(ctx, canvas);
+                return;
+            }
+
             ctx.save();
             ctx.translate(s.shakeX, s.shakeY);
 
@@ -1624,6 +1924,145 @@
             }
         }
 
+        renderVictoryCanvas(ctx, canvas) {
+            const s = this.state;
+            const elapsed = (Date.now() - s.victoryTime) / 1000;
+            const w = canvas.width, h = canvas.height;
+
+            // Phase 1 (0-1.8s): Canvas effects before overlay
+            // Background: dark -> gradually brightening
+            const brightness = Math.min(1, elapsed / 1.8);
+            const bgR = Math.floor(5 + brightness * 30);
+            const bgG = Math.floor(5 + brightness * 25);
+            const bgB = Math.floor(5 + brightness * 15);
+            ctx.fillStyle = `rgb(${bgR},${bgG},${bgB})`;
+            ctx.fillRect(0, 0, w, h);
+
+            // Expanding light ring from gate
+            const gx = s.gate.x, gy = s.gate.y;
+            const ringRadius = elapsed * 400;
+            const ringAlpha = Math.max(0, 1 - elapsed / 2);
+
+            if (ringAlpha > 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                // Outer glow ring
+                const ringGrad = ctx.createRadialGradient(gx, gy, Math.max(0, ringRadius - 40), gx, gy, ringRadius + 20);
+                ringGrad.addColorStop(0, 'transparent');
+                ringGrad.addColorStop(0.4, `rgba(255, 220, 100, ${ringAlpha * 0.6})`);
+                ringGrad.addColorStop(0.6, `rgba(255, 255, 200, ${ringAlpha * 0.8})`);
+                ringGrad.addColorStop(0.8, `rgba(255, 220, 100, ${ringAlpha * 0.4})`);
+                ringGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = ringGrad;
+                ctx.fillRect(0, 0, w, h);
+
+                // Central bright flash
+                if (elapsed < 0.5) {
+                    const flashAlpha = 1 - elapsed / 0.5;
+                    const flashGrad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 200 + elapsed * 300);
+                    flashGrad.addColorStop(0, `rgba(255, 255, 255, ${flashAlpha})`);
+                    flashGrad.addColorStop(0.3, `rgba(255, 240, 180, ${flashAlpha * 0.7})`);
+                    flashGrad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = flashGrad;
+                    ctx.fillRect(0, 0, w, h);
+                }
+
+                // Golden particles from gate
+                if (elapsed < 1.5 && Math.random() < 0.6) {
+                    const colors = ['#ffdd44', '#ffaa00', '#ffffff', '#ffee88'];
+                    this.particles.spawn(
+                        gx + (Math.random() - 0.5) * 80,
+                        gy + (Math.random() - 0.5) * 80,
+                        colors[Math.floor(Math.random() * colors.length)],
+                        3 + Math.floor(Math.random() * 4)
+                    );
+                }
+
+                // Light rays from gate
+                ctx.strokeStyle = `rgba(255, 220, 100, ${ringAlpha * 0.3})`;
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 16; i++) {
+                    const angle = (i / 16) * TWO_PI + elapsed * 0.5;
+                    const r1 = 30 + Math.sin(elapsed * 3 + i) * 10;
+                    const r2 = ringRadius * 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(gx + Math.cos(angle) * r1, gy + Math.sin(angle) * r1);
+                    ctx.lineTo(gx + Math.cos(angle) * r2, gy + Math.sin(angle) * r2);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            // Monster dissolving (recoils and fades)
+            if (elapsed < 1.8) {
+                const dissolve = Math.min(1, elapsed / 1.5);
+                const recoilDist = dissolve * 150;
+                const monAngle = Math.atan2(s.monster.y - gx, s.monster.x - gy);
+                const mx = s.monster.x + Math.cos(monAngle) * recoilDist;
+                const my = s.monster.y + Math.sin(monAngle) * recoilDist;
+                const monAlpha = Math.max(0, 1 - dissolve);
+                const monScale = Math.max(0.1, 1 - dissolve * 0.8);
+
+                ctx.save();
+                ctx.globalAlpha = monAlpha;
+                ctx.translate(mx, my);
+                ctx.scale(monScale, monScale);
+                ctx.translate(-mx, -my);
+
+                // Monster eyes go from white to golden to gone
+                const eyeColor = dissolve < 0.5
+                    ? `rgba(255, ${Math.floor(200 + dissolve * 110)}, ${Math.floor(dissolve * 200)}, ${monAlpha})`
+                    : `rgba(255, 220, 100, ${monAlpha})`;
+                ctx.fillStyle = eyeColor;
+                ctx.shadowColor = '#ffdd44';
+                ctx.shadowBlur = 20 * monAlpha;
+                ctx.beginPath();
+                ctx.arc(mx - 5, my - 4, 3.5, 0, TWO_PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(mx + 5, my - 4, 3.5, 0, TWO_PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Dissolve particles from monster
+                if (Math.random() < 0.5 * monAlpha) {
+                    this.particles.spawn(mx + (Math.random() - 0.5) * 30, my + (Math.random() - 0.5) * 30, '#ffdd44', 2);
+                }
+
+                ctx.restore();
+            }
+
+            // Player still visible, glowing golden
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-over';
+            const playerGlow = Math.min(1, elapsed / 0.5);
+            const pglow = ctx.createRadialGradient(s.player.x, s.player.y, 0, s.player.x, s.player.y, 50 + playerGlow * 30);
+            pglow.addColorStop(0, `rgba(255, 230, 150, ${0.3 * playerGlow})`);
+            pglow.addColorStop(1, 'transparent');
+            ctx.fillStyle = pglow;
+            ctx.fillRect(s.player.x - 80, s.player.y - 80, 160, 160);
+            ctx.beginPath();
+            ctx.arc(s.player.x, s.player.y, PLAYER_RADIUS, 0, TWO_PI);
+            ctx.fillStyle = `rgb(${255}, ${Math.floor(204 + playerGlow * 40)}, ${Math.floor(153 + playerGlow * 80)})`;
+            ctx.fill();
+            ctx.strokeStyle = `rgb(${Math.floor(196 + playerGlow * 59)}, ${Math.floor(144 + playerGlow * 76)}, ${Math.floor(112 + playerGlow * 60)})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+
+            // Update particles
+            this.particles.update();
+            this.particles.render(ctx);
+
+            // Fade to white before overlay
+            if (elapsed > 1.2 && elapsed < 2) {
+                const fadeAlpha = Math.min(1, (elapsed - 1.2) / 0.8);
+                ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
+                ctx.fillRect(0, 0, w, h);
+            }
+        }
+
         renderVignette(ctx, canvas) {
             const s = this.state;
             const monsterDist = Math.hypot(s.monster.x - s.player.x, s.monster.y - s.player.y);
@@ -1667,10 +2106,11 @@
             this.heartbeat = new HeartbeatSound(this.audio);
             this.whisper = new WhisperSound(this.audio);
             this.jumpscare = new JumpscareSystem(this.audio);
+            this.victory = new VictorySystem(this.audio);
             this.input = new InputManager();
             this.particles = new ParticleSystem(this.state);
             this.abilities = new AbilitySystem(this.state, this.whisper, this.canvas);
-            this.collisions = new CollisionSystem(this.state, this.particles, this.jumpscare, this.heartbeat, this.canvas);
+            this.collisions = new CollisionSystem(this.state, this.particles, this.jumpscare, this.heartbeat, this.victory, this.canvas);
             this.renderer = new Renderer(this.state, this.particles);
 
             SFX.init(this.audio);
@@ -1695,6 +2135,7 @@
             document.getElementById('remaining').textContent = this.state.total;
             document.getElementById('message').style.display = 'none';
             document.getElementById('toast').style.opacity = 0;
+            this.victory.hide();
 
             if (this.audio.started) {
                 this.stopAllAudio();
@@ -1726,6 +2167,11 @@
         }
 
         update(dt) {
+            // Victory canvas animation continues after gameOver
+            if (this.state.victoryActive) {
+                this.particles.update();
+                return;
+            }
             if (this.state.gameOver) return;
 
             UI.updateToast(this.state, dt);
@@ -1736,10 +2182,7 @@
             this.collisions.check();
             this.particles.update();
 
-            if (this.state.gameOver && !this.state.won) {
-                this.stopAllAudio();
-            }
-            if (this.state.gameOver && this.state.won) {
+            if (this.state.gameOver) {
                 this.stopAllAudio();
             }
         }

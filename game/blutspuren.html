@@ -1245,35 +1245,7 @@
             ctx.fillStyle = `rgba(60, 0, 80, ${pulseAlpha})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // 2. RUNDE WELLEN VOM ZENTRUM
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
-            for (let w = 0; w < 5; w++) {
-                const waveR = ((time / 50 + w * 100) % (canvas.height * 1.5));
-                const waveAlpha = 0.3 * (1 - waveR / (canvas.height * 1.5));
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2, canvas.height / 2, waveR, 0, TWO_PI);
-                ctx.strokeStyle = `rgba(150, 0, 200, ${waveAlpha})`;
-                ctx.lineWidth = 3 + Math.sin(time / 100) * 2;
-                ctx.stroke();
-            }
-            ctx.restore();
-            
-            // 3. PULSIERENDE RÄNDER (mehrere Layer)
-            for (let layer = 0; layer < 3; layer++) {
-                const pulseI = 0.4 + Math.sin(time / (200 - layer * 50)) * 0.25;
-                const dpg = ctx.createRadialGradient(
-                    canvas.width / 2, canvas.height / 2, canvas.height * (0.1 + layer * 0.05),
-                    canvas.width / 2, canvas.height / 2, canvas.height * (0.6 + layer * 0.1)
-                );
-                dpg.addColorStop(0, 'transparent');
-                dpg.addColorStop(0.5, `rgba(100, 0, 150, ${pulseI * 0.5})`);
-                dpg.addColorStop(1, `rgba(180, 0, 220, ${pulseI})`);
-                ctx.fillStyle = dpg;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            
-            // 4. RAND-PARTIKEL
+            // 2. RAND-PARTIKEL
             if (Math.random() < 0.4) {
                 const side = Math.floor(Math.random() * 4);
                 const px = side < 2 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width);
@@ -1282,77 +1254,92 @@
                 spawnParticles(px, py, colors[Math.floor(Math.random() * colors.length)], 2 + Math.floor(Math.random() * 3));
             }
             
-            // 5. ORGANISCHE RANKEN am Bildschirmrand
+            // 3. ORGANISCHE RANKEN - Variierend und natürlich
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            const ts = time / 1000; // Sekunden für langsamere Animation
+            const ts = time / 1000;
+            const w = canvas.width, h = canvas.height;
             
-            // Ranken-Funktion: zeichnet eine organische Ranke
-            function drawVine(startX, startY, dirX, dirY, length, seed) {
+            function drawOrganicVine(startX, startY, dirX, dirY, baseLength, seed, thickness) {
+                const segments = 8 + Math.floor(Math.abs(Math.sin(seed * 7.3)) * 8);
+                const curveFreq1 = 0.5 + Math.abs(Math.sin(seed * 3.1)) * 1.5;
+                const curveFreq2 = 0.8 + Math.abs(Math.sin(seed * 4.7)) * 2.2;
+                const curveAmp1 = 15 + Math.abs(Math.sin(seed * 2.9)) * 25;
+                const curveAmp2 = 8 + Math.abs(Math.sin(seed * 5.3)) * 15;
+                const length = baseLength * (0.7 + Math.abs(Math.sin(seed * 1.8)) * 0.6);
+                const speed1 = 0.3 + Math.abs(Math.sin(seed * 6.2)) * 0.7;
+                const speed2 = 0.4 + Math.abs(Math.sin(seed * 3.8)) * 0.8;
+                
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
-                let cx = startX, cy = startY;
-                const segments = 12;
-                for (let i = 0; i < segments; i++) {
+                let cx = startX, cy = startY, prevX = startX, prevY = startY;
+                
+                for (let i = 1; i <= segments; i++) {
                     const t = i / segments;
-                    // Organische Wellenbewegung
-                    const wave1 = Math.sin(ts * 0.8 + seed + t * 4) * (20 + t * 15);
-                    const wave2 = Math.sin(ts * 1.2 + seed * 2.3 + t * 6) * (10 + t * 8);
-                    const perpX = -dirY;
-                    const perpY = dirX;
+                    const wave1 = Math.sin(ts * speed1 + seed + t * curveFreq1 * 3) * curveAmp1 * (1 - t * 0.3);
+                    const wave2 = Math.cos(ts * speed2 + seed * 2.1 + t * curveFreq2 * 4) * curveAmp2 * (1 - t * 0.5);
+                    const wave3 = Math.sin(ts * 0.6 + seed * 3.7 + t * 7) * 8 * (1 - t);
+                    
+                    const perpX = -dirY, perpY = dirX;
                     cx += dirX * (length / segments);
                     cy += dirY * (length / segments);
-                    const wobbleX = cx + perpX * (wave1 + wave2);
-                    const wobbleY = cy + perpY * (wave1 + wave2);
-                    ctx.lineTo(wobbleX, wobbleY);
+                    
+                    const organicX = cx + perpX * (wave1 + wave2 + wave3);
+                    const organicY = cy + perpY * (wave1 + wave2 + wave3);
+                    
+                    const cpX = (prevX + organicX) / 2 + perpX * Math.sin(ts + seed + i) * 5;
+                    const cpY = (prevY + organicY) / 2 + perpY * Math.sin(ts + seed + i) * 5;
+                    
+                    ctx.quadraticCurveTo(cpX, cpY, organicX, organicY);
+                    prevX = organicX; prevY = organicY;
                 }
-                // Breite variiert: dick am Rand, dünn zur Mitte
-                const alpha = 0.25 + Math.sin(ts + seed) * 0.1;
-                ctx.strokeStyle = `rgba(120, 0, 180, ${alpha})`;
-                ctx.lineWidth = 3 + Math.sin(ts * 0.5 + seed) * 1.5;
+                
+                const hue = 260 + Math.sin(seed * 8.5) * 30;
+                const alpha = 0.15 + Math.abs(Math.sin(ts * 0.4 + seed)) * 0.15;
+                ctx.strokeStyle = `hsla(${hue}, 80%, 40%, ${alpha})`;
+                ctx.lineWidth = thickness * (0.6 + Math.abs(Math.sin(ts * 0.3 + seed)) * 0.8);
+                ctx.lineCap = 'round';
                 ctx.stroke();
                 
-                // Dünnere Neben-Ranke
-                ctx.beginPath();
-                cx = startX; cy = startY;
-                ctx.moveTo(startX, startY);
-                for (let i = 0; i < segments; i++) {
-                    const t = i / segments;
-                    const wave = Math.sin(ts * 1.1 + seed * 1.7 + t * 5) * (15 + t * 12);
-                    cx += dirX * (length / segments) * 0.8;
-                    cy += dirY * (length / segments) * 0.8;
-                    const perpX = -dirY;
-                    const perpY = dirX;
-                    ctx.lineTo(cx + perpX * wave, cy + perpY * wave);
+                if (Math.abs(Math.sin(seed * 9.7)) > 0.6 && length > 80) {
+                    const branchPoint = 0.3 + Math.abs(Math.sin(seed * 2.4)) * 0.4;
+                    const bx = startX + dirX * length * branchPoint;
+                    const by = startY + dirY * length * branchPoint;
+                    const branchDirX = dirX * Math.cos(0.8) - dirY * Math.sin(0.8) * (Math.sin(seed * 5.5) > 0 ? 1 : -1);
+                    const branchDirY = dirX * Math.sin(0.8) + dirY * Math.cos(0.8) * (Math.sin(seed * 5.5) > 0 ? 1 : -1);
+                    drawOrganicVine(bx, by, branchDirX, branchDirY, length * 0.5, seed * 1.5, thickness * 0.6);
                 }
-                ctx.strokeStyle = `rgba(80, 0, 140, ${alpha * 0.6})`;
-                ctx.lineWidth = 1.5 + Math.sin(ts * 0.7 + seed * 3) * 0.8;
-                ctx.stroke();
             }
             
-            const w = canvas.width, h = canvas.height;
-            const vineLen = Math.min(w, h) * 0.25;
+            const leftCount = 5 + Math.floor(Math.abs(Math.sin(ts * 0.1)) * 4);
+            const rightCount = 5 + Math.floor(Math.abs(Math.sin(ts * 0.12 + 1)) * 4);
+            const topCount = 4 + Math.floor(Math.abs(Math.sin(ts * 0.08 + 2)) * 3);
+            const bottomCount = 4 + Math.floor(Math.abs(Math.sin(ts * 0.11 + 3)) * 3);
             
-            // Linker Rand: Ranken wachsen nach rechts
-            for (let v = 0; v < 6; v++) {
-                const yPos = h * (0.1 + v * 0.15) + Math.sin(ts * 0.3 + v) * 20;
-                drawVine(0, yPos, 1, 0, vineLen + Math.sin(ts * 0.4 + v * 2) * 30, v * 1.1);
+            for (let v = 0; v < leftCount; v++) {
+                const yPos = h * (0.08 + v * (0.85 / leftCount)) + Math.sin(ts * 0.2 + v * 2) * 30;
+                const thickness = 1.5 + Math.abs(Math.sin(v * 3.3)) * 2.5;
+                drawOrganicVine(0, yPos, 1, Math.sin(ts * 0.15 + v) * 0.15, h * 0.22, v * 1.7 + ts, thickness);
             }
-            // Rechter Rand: Ranken wachsen nach links
-            for (let v = 0; v < 6; v++) {
-                const yPos = h * (0.05 + v * 0.15) + Math.sin(ts * 0.35 + v + 5) * 20;
-                drawVine(w, yPos, -1, 0, vineLen + Math.sin(ts * 0.45 + v * 2.3) * 30, v * 1.3 + 10);
+            
+            for (let v = 0; v < rightCount; v++) {
+                const yPos = h * (0.05 + v * (0.9 / rightCount)) + Math.cos(ts * 0.25 + v * 1.5) * 35;
+                const thickness = 1.5 + Math.abs(Math.sin(v * 4.1 + 10)) * 2.5;
+                drawOrganicVine(w, yPos, -1, Math.cos(ts * 0.18 + v + 5) * 0.12, h * 0.25, v * 2.3 + ts + 100, thickness);
             }
-            // Oberer Rand: Ranken wachsen nach unten
-            for (let v = 0; v < 5; v++) {
-                const xPos = w * (0.1 + v * 0.18) + Math.sin(ts * 0.25 + v + 3) * 25;
-                drawVine(xPos, 0, 0, 1, vineLen * 0.8 + Math.sin(ts * 0.5 + v * 1.7) * 25, v * 1.5 + 20);
+            
+            for (let v = 0; v < topCount; v++) {
+                const xPos = w * (0.1 + v * (0.8 / topCount)) + Math.sin(ts * 0.22 + v * 2.2) * 40;
+                const thickness = 1.5 + Math.abs(Math.sin(v * 3.9 + 20)) * 2;
+                drawOrganicVine(xPos, 0, Math.sin(ts * 0.12 + v + 3) * 0.1, 1, w * 0.18, v * 1.9 + ts + 200, thickness);
             }
-            // Unterer Rand: Ranken wachsen nach oben
-            for (let v = 0; v < 5; v++) {
-                const xPos = w * (0.15 + v * 0.18) + Math.sin(ts * 0.3 + v + 7) * 25;
-                drawVine(xPos, h, 0, -1, vineLen * 0.8 + Math.sin(ts * 0.55 + v * 1.9) * 25, v * 1.7 + 30);
+            
+            for (let v = 0; v < bottomCount; v++) {
+                const xPos = w * (0.12 + v * (0.76 / bottomCount)) + Math.cos(ts * 0.19 + v * 1.8) * 35;
+                const thickness = 1.5 + Math.abs(Math.sin(v * 4.7 + 30)) * 2;
+                drawOrganicVine(xPos, h, Math.cos(ts * 0.14 + v + 7) * 0.08, -1, w * 0.18, v * 2.1 + ts + 300, thickness);
             }
+            
             ctx.restore();
             
             // 6. RAND-NEBEL (subtiler Dunst)

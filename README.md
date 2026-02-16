@@ -1,4 +1,4 @@
-# Wenzis Spiele-Sammlung
+# Leo's Spiele-Sammlung
 
 ## 🔗 Live spielen
 
@@ -34,4 +34,4 @@ Finde alle Blutspuren um zu entkommen!
 - Lila Screen-Effekt
 
 ## Version
-1.0 - Entwickelt mit Leo 🦎
+1.0 - AI Entwickelt mit Leo🦎

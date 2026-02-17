@@ -218,26 +218,26 @@
             font-family: monospace;
         }
 
-        /* HUD - danger indicator */
-        #dangerBar {
+        /* HUD - danger indicator (now just generic) */
+        #statusBar {
             position: absolute;
             top: 20px;
             right: 20px;
             width: 200px;
             height: 20px;
             background: rgba(0,0,0,0.8);
-            border: 2px solid #f00;
+            border: 2px solid #0f0;
             border-radius: 10px;
             overflow: hidden;
             z-index: 999;
         }
-        #dangerFill {
+        #statusFill {
             height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #0f0, #ff0, #f00);
+            width: 100%;
+            background: #0f0;
             transition: width 0.3s;
         }
-        #dangerLabel {
+        #statusLabel {
             position: absolute;
             top: 0;
             left: 0;
@@ -247,7 +247,7 @@
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: #fff;
+            color: #000;
             text-shadow: 0 0 5px #000;
         }
 
@@ -282,9 +282,9 @@
         </div>
     </div>
 
-    <div id="dangerBar">
-        <div id="dangerFill"></div>
-        <div id="dangerLabel">GEFAHR</div>
+    <div id="statusBar">
+        <div id="statusFill"></div>
+        <div id="statusLabel">STATUS</div>
     </div>
 
     <div id="escapeHint">🔴 ENTFESSEN! ZUM AUSGANG!</div>
@@ -311,10 +311,6 @@
         const MAP_WIDTH = 50;
         const MAP_HEIGHT = 35;
         const PLAYER_SPEED = 4;
-        const MONSTER_SPEED_BASE = 1.8;
-        const MONSTER_VISION = 180; // pixels
-        const DANGER_INCREMENT = 0.3; // per frame when monster close
-        const DANGER_DECREASE = 0.05; // per frame when safe
 
         // ================= STATE =================
         const canvas = document.getElementById('gameCanvas');
@@ -330,41 +326,38 @@
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const inventoryBar = document.getElementById('inventoryBar');
-        const dangerFill = document.getElementById('dangerFill');
+        const statusFill = document.getElementById('statusFill');
         const escapeHint = document.getElementById('escapeHint');
 
         let phoneOpen = false;
         let messages = [];
         let gameOver = false;
         let escaped = false;
-        let mentalDanger = 0; // 0-100
         let allNotesCollected = false;
         let escapeUnlocked = false;
 
         // Player
         const player = {
-            x: MAP_WIDTH * TILE_SIZE / 2,
-            y: MAP_HEIGHT * TILE_SIZE / 2,
+            x: TILE_SIZE * 3,
+            y: TILE_SIZE * 3,
             width: 20,
             height: 20,
             speed: PLAYER_SPEED,
             invincible: false,
-            speedBoost: 1,
-            canSeeInvisible: false
+            speedBoost: 1
         };
 
         // Input
         const keys = {};
 
-        // Map generation
+        // Map
         const walls = [];
         const floorTiles = [];
         const notes = [];
         const items = [];
         const exitDoor = { x: 0, y: 0, w: TILE_SIZE*2, h: TILE_SIZE*2 };
-        let monster = { x: 0, y: 0, active: false };
 
-        // Generate simple maze-like map
+        // Generate map
         function generateMap() {
             // Create floor grid
             for (let y = 0; y < MAP_HEIGHT; y++) {
@@ -392,6 +385,20 @@
                 for (let dx = 0; dx < ww; dx++) {
                     for (let dy = 0; dy < wh; dy++) {
                         walls.push({ x: (wx+dx)*TILE_SIZE, y: (wy+dy)*TILE_SIZE, w: TILE_SIZE, h: TILE_SIZE });
+                    }
+                }
+            }
+
+            // Ensure spawn area is clear (3x3 tiles around player)
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const sx = (3 + dx) * TILE_SIZE;
+                    const sy = (3 + dy) * TILE_SIZE;
+                    // Remove any wall at spawn location
+                    for (let i = walls.length - 1; i >= 0; i--) {
+                        if (walls[i].x === sx && walls[i].y === sy) {
+                            walls.splice(i, 1);
+                        }
                     }
                 }
             }
@@ -446,13 +453,6 @@
                     }
                 }
             }
-
-            // Place monster (mirror) near player start after a delay
-            setTimeout(() => {
-                monster.active = true;
-                monster.x = player.x + 300;
-                monster.y = player.y + 300;
-            }, 5000);
         }
 
         function getNoteContent(index) {
@@ -481,7 +481,6 @@
 
         // ================= DRAWING =================
         function drawBackground() {
-            // Camera follow player
             const camX = player.x - canvas.width / 2;
             const camY = player.y - canvas.height / 2;
             ctx.save();
@@ -540,53 +539,17 @@
                 }
             }
 
-            // Monster (blutiges Spiegelbild)
-            if (monster.active) {
-                const bloodPulse = Math.sin(Date.now() * 0.008) * 5 + 20;
-                ctx.fillStyle = `rgba(255, 0, 0, 0.4)`;
-                ctx.fillRect(monster.x - 30, monster.y - 30, 60 + bloodPulse, 60 + bloodPulse);
-                
-                // The reflection itself (inverted colors, red tint)
-                ctx.fillStyle = '#f00';
-                ctx.fillRect(monster.x - 15, monster.y - 15, 30, 30);
-                // Blood dripping effect
-                for (let i = 0; i < 5; i++) {
-                    const dripY = (Date.now() * 0.1 + i * 10) % 40;
-                    ctx.fillRect(monster.x - 15 + i * 6, monster.y + 15 + dripY, 3, 10);
-                }
-            }
-
             // Player
             ctx.fillStyle = '#0f0';
             ctx.fillRect(player.x - player.width/2, player.y - player.height/2, player.width, player.height);
-            // Player eyes
             ctx.fillStyle = player.invincible ? '#ff0' : '#000';
             ctx.fillRect(player.x - 4, player.y - 2, 3, 3);
             ctx.fillRect(player.x + 1, player.y - 2, 3, 3);
-
-            // Flashlight effect (cone)
-            if (currentLightActive) {
-                ctx.save();
-                ctx.globalAlpha = 0.15;
-                ctx.fillStyle = '#fff';
-                ctx.translate(player.x, player.y);
-                ctx.rotate(playerAngle);
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(250, -60);
-                ctx.lineTo(250, 60);
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-            }
 
             ctx.restore();
         }
 
         // ================= GAME LOGIC =================
-        let currentLightActive = true; // flashlight always on for now
-        let playerAngle = 0;
-
         function updatePlayer() {
             if (gameOver || escaped) return;
 
@@ -596,73 +559,27 @@
             if (keys['a'] || keys['ArrowLeft']) dx = -player.speed * player.speedBoost;
             if (keys['d'] || keys['ArrowRight']) dx = player.speed * player.speedBoost;
 
-            // Mouse to rotate flashlight
-            const mouseX = mousePos.x - (player.x - canvas.width/2);
-            const mouseY = mousePos.y - (player.y - canvas.height/2);
-            playerAngle = Math.atan2(mouseY, mouseX);
-
             const newX = player.x + dx;
             const newY = player.y + dy;
 
-            // Collision with walls
             const playerRect = { x: newX - player.width/2, y: newY - player.height/2, w: player.width, h: player.height };
             if (!walls.some(w => rectCollide(playerRect, w))) {
                 player.x = newX;
                 player.y = newY;
             }
 
-            // Bounds
             player.x = Math.max(TILE_SIZE, Math.min(player.x, MAP_WIDTH * TILE_SIZE - TILE_SIZE));
             player.y = Math.max(TILE_SIZE, Math.min(player.y, MAP_HEIGHT * TILE_SIZE - TILE_SIZE));
         }
 
-        function updateMonster() {
-            if (!monster.active || gameOver || escaped) return;
-
-            // Monster moves toward player but slower when player using battery light (maybe)
-            const dx = player.x - monster.x;
-            const dy = player.y - monster.y;
-            const dist = Math.hypot(dx, dy);
-            
-            // Speed increase based on danger
-            const speedMult = 1 + mentalDanger / 50;
-            const speed = MONSTER_SPEED_BASE * speedMult;
-
-            if (dist > 0) {
-                monster.x += (dx / dist) * speed;
-                monster.y += (dy / dist) * speed;
-            }
-
-            // Collision with player
-            if (dist < 30 && !player.invincible) {
-                // Player dies - game over
-                addMessage('System', 'Das Spiegelbild hat dich eingeholt...', false);
-                setTimeout(() => {
-                    gameOver = true;
-                    addMessage('System', 'GAME OVER. Drücke R zum Neustart.', false);
-                }, 1000);
-            }
-        }
-
-        function updateDanger() {
+        function updateStatus() {
             if (gameOver || escaped) return;
             
-            const distToMonster = distance(player.x, player.y, monster.x, monster.y);
-            if (distToMonster < 200) {
-                mentalDanger = Math.min(100, mentalDanger + DANGER_INCREMENT);
-            } else {
-                mentalDanger = Math.max(0, mentalDanger - DANGER_DECREASE);
-            }
-
-            // Update UI
-            dangerFill.style.width = mentalDanger + '%';
-            if (mentalDanger > 70) {
-                dangerFill.style.background = '#f00';
-            } else if (mentalDanger > 40) {
-                dangerFill.style.background = 'linear-gradient(90deg, #ff0, #f00)';
-            } else {
-                dangerFill.style.background = '#0f0';
-            }
+            // Simple status: show notes collected
+            const collectedCount = notes.filter(n => n.collected).length;
+            const totalCount = notes.length;
+            statusFill.style.width = (collectedCount / totalCount * 100) + '%';
+            document.getElementById('statusLabel').textContent = `Notizen: ${collectedCount}/${totalCount}`;
 
             // Check escape condition
             if (allNotesCollected && !escapeUnlocked) {
@@ -739,9 +656,7 @@
             inventory[type].count--;
             if (inventory[type].count <= 0) delete inventory[type];
 
-            // Effects
             if (type === 'battery') {
-                // Nothing immediate, just needed for story
                 addMessage('System', 'Batterie gesammelt. Das Handy hält länger.', false);
             } else if (type === 'speed') {
                 player.speedBoost = 2;
@@ -788,7 +703,6 @@
         function showPhone() {
             phoneOverlay.style.display = 'flex';
             phoneOpen = true;
-            // If phone just opened, check for triggers
             if (!phoneInitialized) {
                 phoneInitialized = true;
                 startPhoneStory();
@@ -813,12 +727,10 @@
             if (text) {
                 addMessage('Ich', text, true);
                 messageInput.value = '';
-                // Process choice
                 handlePhoneChoice(text.toLowerCase());
             }
         }
 
-        // Phone story states
         let phoneInitialized = false;
         let storyState = 0;
 
@@ -860,20 +772,12 @@
         // ================= INPUT HANDLING =================
         window.addEventListener('keydown', (e) => {
             keys[e.key] = true;
-            
-            // Restart
             if ((e.key === 'r' || e.key === 'R') && gameOver) {
                 location.reload();
             }
         });
         window.addEventListener('keyup', (e) => {
             keys[e.key] = false;
-        });
-
-        const mousePos = { x: 0, y: 0 };
-        window.addEventListener('mousemove', (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
         });
 
         window.addEventListener('resize', () => {
@@ -885,8 +789,7 @@
         function gameLoop() {
             if (!gameOver && !escaped) {
                 updatePlayer();
-                updateMonster();
-                updateDanger();
+                updateStatus();
                 checkItemPickup();
             }
             drawBackground();
@@ -898,7 +801,6 @@
         gameLoop();
         renderInventoryBar();
 
-        // Instructions
         console.log('Spiel geladen! Viel Spaß, Leo! 🦎🎮');
     </script>
 </body>

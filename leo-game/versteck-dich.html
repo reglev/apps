@@ -72,7 +72,7 @@
         const player = {
             x: TILE * 5 + TILE/2,
             y: TILE * 4 + TILE/2,
-            speed: 0.2,
+            speed: 1.1,
             radius: 10,
             hidden: false,
             hideTimer: 0
@@ -82,16 +82,18 @@
         const killer = {
             x: TILE * 15,
             y: TILE * 10,
-            speed: 0.3,
+            speed: 1.2,
             radius: 12,
-            dir: 1,
+            mode: 'PATROL', // PATROL or HUNT
+            huntCooldown: 0,
             path: [
                 {x: TILE*15, y: TILE*10},
                 {x: TILE*18, y: TILE*10},
                 {x: TILE*18, y: TILE*2},
                 {x: TILE*15, y: TILE*2}
             ],
-            targetIdx: 0
+            targetIdx: 0,
+            patrolTimer: 0
         };
 
         // Items
@@ -227,6 +229,7 @@
         // Line of sight check (simple: no walls blocking line within same room)
         function canSeeKiller() {
             if (gameOver) return false;
+            if (player.hidden) return false; // Can't see if hidden
             const d = dist(player, killer);
             if (d > 50) return false;  // Halved from 100 to 50
             // Check if in same room (simplified)
@@ -266,22 +269,59 @@
         // Update killer AI (patrol between waypoints)
         function updateKiller() {
             if (gameOver) return;
-            const target = killer.path[killer.targetIdx];
-            const dx = target.x - killer.x;
-            const dy = target.y - killer.y;
-            const d = Math.hypot(dx, dy);
-            if (d < 5) {
-                killer.targetIdx = (killer.targetIdx + 1) % killer.path.length;
-            } else {
-                killer.x += (dx/d) * killer.speed;
-                killer.y += (dy/d) * killer.speed;
-            }
 
-            // Check if killer sees player
-            if (!player.hidden && canSeeKiller()) {
+            // Check collision (touch)
+            const dCollision = dist(player, killer);
+            if (dCollision < player.radius + killer.radius) {
                 gameOver = true;
                 showMessage('DER MÖRDER HAT DICH GEFUNDEN!', 5000);
                 playSound(100, 1, 'sawtooth');
+                return;
+            }
+
+            // State machine
+            if (player.hidden) {
+                // Player hidden → return to patrol after delay
+                killer.mode = 'PATROL';
+                killer.patrolTimer = 120; // ~2 seconds delay
+            } else if (canSeeKiller()) {
+                killer.mode = 'HUNT';
+                killer.huntCooldown = 0;
+            } else if (killer.mode === 'HUNT') {
+                // Lost sight → stay in hunt for a bit, then return to patrol
+                killer.huntCooldown++;
+                if (killer.huntCooldown > 180) { // ~3 seconds
+                    killer.mode = 'PATROL';
+                }
+            }
+
+            // Movement based on mode
+            if (killer.mode === 'PATROL') {
+                if (killer.patrolTimer > 0) {
+                    killer.patrolTimer--;
+                    // Stand still during delay
+                } else {
+                    // Follow patrol path
+                    const target = killer.path[killer.targetIdx];
+                    const dx = target.x - killer.x;
+                    const dy = target.y - killer.y;
+                    const d = Math.hypot(dx, dy);
+                    if (d < 5) {
+                        killer.targetIdx = (killer.targetIdx + 1) % killer.path.length;
+                    } else {
+                        killer.x += (dx/d) * killer.speed;
+                        killer.y += (dy/d) * killer.speed;
+                    }
+                }
+            } else if (killer.mode === 'HUNT') {
+                // Chase player directly
+                const dx = player.x - killer.x;
+                const dy = player.y - killer.y;
+                const d = Math.hypot(dx, dy);
+                if (d > 0) {
+                    killer.x += (dx/d) * killer.speed;
+                    killer.y += (dy/d) * killer.speed;
+                }
             }
         }
 

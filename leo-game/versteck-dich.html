@@ -127,12 +127,9 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        // Helper
-        function rectsOverlap(a, b) {
-            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-        }
-        function dist(a, b) {
-            return Math.hypot((a.x + a.w/2) - (b.x + b.w/2), (a.y + a.h/2) - (b.y + b.h/2));
+        // Helper - distance between centers of two circles
+        function distEntities(a, b) {
+            return Math.hypot(a.x - b.x, a.y - b.y);
         }
 
         // Collision check against rooms (simplified: only doorways as passable)
@@ -229,7 +226,7 @@
         function canSeeKiller() {
             if (gameOver) return false;
             if (player.hidden) return false; // Can't see if hidden
-            const d = dist(player, killer);
+            const d = distEntities(player, killer);
             if (d > 50) return false;  // Halved from 100 to 50
             // Check if in same room (simplified)
             const pr = getRoom(player.x, player.y);
@@ -269,8 +266,8 @@
         function updateKiller() {
             if (gameOver) return;
 
-            // Check collision (touch)
-            const dCollision = dist(player, killer);
+            // Collision check (touch kills) - circle-circle
+            const dCollision = distEntities(player, killer);
             if (dCollision < player.radius + killer.radius) {
                 gameOver = true;
                 showMessage('DER MÖRDER HAT DICH GEFUNDEN!', 5000);
@@ -280,16 +277,14 @@
 
             // State machine
             if (player.hidden) {
-                // Player hidden → return to patrol after delay
                 killer.mode = 'PATROL';
                 killer.patrolTimer = 120; // ~2 seconds delay
             } else if (canSeeKiller()) {
                 killer.mode = 'HUNT';
                 killer.huntCooldown = 0;
             } else if (killer.mode === 'HUNT') {
-                // Lost sight → stay in hunt for a bit, then return to patrol
                 killer.huntCooldown++;
-                if (killer.huntCooldown > 180) { // ~3 seconds
+                if (killer.huntCooldown > 180) {
                     killer.mode = 'PATROL';
                 }
             }

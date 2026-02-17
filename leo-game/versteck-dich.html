@@ -131,6 +131,9 @@
         function distEntities(a, b) {
             return Math.hypot(a.x - b.x, a.y - b.y);
         }
+        function rectsOverlap(a, b) {
+            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        }
 
         // Collision check against rooms (simplified: only doorways as passable)
         function canMoveTo(x, y) {

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Versteck dich</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: monospace;
+        }
+        #gameCanvas {
+            display: block;
+            background: #111;
+        }
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #f00;
+            text-shadow: 0 0 5px #000;
+            font-size: 14px;
+            z-index: 100;
+        }
+        #message {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            text-shadow: 0 0 10px #000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="hud"></div>
+    <div id="message"></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const hud = document.getElementById('hud');
+        const messageEl = document.getElementById('message');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Config
+        const TILE = 40;
+        const ROOMS = [
+            { x: 0, y: 0, w: 10, h: 8, type: 'hall' },
+            { x: 10, y: 0, w: 6, h: 8, type: 'bedroom' },
+            { x: 0, y: 8, w: 8, h: 6, type: 'kitchen' },
+            { x: 8, y: 8, w: 8, h: 6, type: 'bathroom' },
+            { x: 16, y: 0, w: 4, h: 8, type: 'cellar' }
+        ];
+
+        // State
+        const keys = {};
+        let gameOver = false;
+        let escaped = false;
+
+        // Player
+        const player = {
+            x: TILE * 5 + TILE/2,
+            y: TILE * 4 + TILE/2,
+            speed: 3,
+            radius: 10,
+            hidden: false,
+            hideTimer: 0
+        };
+
+        // Killer
+        const killer = {
+            x: TILE * 12,
+            y: TILE * 2,
+            speed: 1.2,
+            radius: 12,
+            dir: 1,
+            path: [
+                {x: TILE*12, y: TILE*2},
+                {x: TILE*12, y: TILE*6},
+                {x: TILE*4, y: TILE*6},
+                {x: TILE*4, y: TILE*2}
+            ],
+            targetIdx: 0
+        };
+
+        // Items
+        const key = { x: TILE*14, y: TILE*5, collected: false, w: 20, h: 20 };
+        const exitDoor = { x: TILE*1, y: TILE*1, w: 40, h: 60, open: false };
+
+        // Hiding spots
+        const hidingSpots = [
+            { x: TILE*11, y: TILE*4, w: 40, h: 20, type: 'wardrobe', occupied: false },
+            { x: TILE*2, y: TILE*10, w: 30, h: 20, type: 'bed', occupied: false },
+            { x: TILE*9, y: TILE*9, w: 35, h: 20, type: 'closet', occupied: false },
+            { x: TILE*16, y: TILE*1, w: 30, h: 30, type: 'cabinet', occupied: false }
+        ];
+
+        // Audio context for simple sounds
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function playSound(freq, duration, type='sine') {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Helper
+        function rectsOverlap(a, b) {
+            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        }
+        function dist(a, b) {
+            return Math.hypot((a.x + a.w/2) - (b.x + b.w/2), (a.y + a.h/2) - (b.y + b.h/2));
+        }
+
+        // Collision check against rooms (simplified: only doorways as passable)
+        function canMoveTo(x, y) {
+            // Bounds
+            if (x < TILE || x > 20*TILE || y < TILE || y > 14*TILE) return false;
+            // Doorways (gaps between rooms)
+            const cx = Math.floor(x/TILE);
+            const cy = Math.floor(y/TILE);
+            // Hall-Bedroom door
+            if (cy >= 3 && cy <= 5 && cx === 10) return true;
+            if (cx >= 4 && cx <= 5 && cy === 8) return true;
+            if (cx >= 8 && cx <= 9 && cy === 8) return true;
+            if (cx >= 15 && cy >= 1 && cy <= 6) return true;
+            // Default: not in walls (simplified, rooms are open)
+            return true;
+        }
+
+        // Draw room backgrounds
+        function drawRooms() {
+            ctx.fillStyle = '#222';
+            for (let r of ROOMS) {
+                ctx.fillRect(r.x*TILE, r.y*TILE, r.w*TILE, r.h*TILE);
+                ctx.strokeStyle = '#444';
+                ctx.strokeRect(r.x*TILE, r.y*TILE, r.w*TILE, r.h*TILE);
+            }
+            // Floor inside rooms
+            ctx.fillStyle = '#2a2a2a';
+            for (let r of ROOMS) {
+                ctx.fillRect(r.x*TILE + 4, r.y*TILE + 4, r.w*TILE - 8, r.h*TILE - 8);
+            }
+        }
+
+        // Draw hiding spots
+        function drawHidingSpots() {
+            for (let spot of hidingSpots) {
+                ctx.fillStyle = spot.occupied ? '#0f0' : '#530';
+                ctx.fillRect(spot.x, spot.y, spot.w, spot.h);
+                ctx.strokeStyle = spot.occupied ? '#0f0' : '#f00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(spot.x, spot.y, spot.w, spot.h);
+                ctx.lineWidth = 1;
+            }
+        }
+
+        // Draw key
+        function drawKey() {
+            if (key.collected) return;
+            ctx.fillStyle = '#ff0';
+            ctx.fillRect(key.x, key.y, key.w, key.h);
+            ctx.fillStyle = '#000';
+            ctx.font = '16px monospace';
+            ctx.fillText('🔑', key.x+2, key.y+15);
+        }
+
+        // Draw exit door
+        function drawExit() {
+            ctx.fillStyle = exitDoor.open ? 'rgba(255,0,0,0.4)' : '#600';
+            ctx.fillRect(exitDoor.x, exitDoor.y, exitDoor.w, exitDoor.h);
+            ctx.strokeStyle = exitDoor.open ? '#f00' : '#300';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(exitDoor.x, exitDoor.y, exitDoor.w, exitDoor.h);
+            ctx.lineWidth = 1;
+            if (exitDoor.open) {
+                ctx.fillStyle = '#f00';
+                ctx.font = '14px monospace';
+                ctx.fillText('RAUS!', exitDoor.x+5, exitDoor.y+35);
+            }
+        }
+
+        // Draw player
+        function drawPlayer() {
+            if (player.hidden) return; // Don't draw when hidden
+            ctx.fillStyle = player.hideTimer > 0 ? '#0ff' : '#0f0';
+            ctx.beginPath();
+            ctx.arc(player.x + player.radius, player.y + player.radius, player.radius, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // Draw killer
+        function drawKiller() {
+            if (gameOver) return;
+            ctx.fillStyle = '#f00';
+            ctx.beginPath();
+            ctx.arc(killer.x + killer.radius, killer.y + killer.radius, killer.radius, 0, Math.PI*2);
+            ctx.fill();
+            // Glow
+            ctx.shadowColor = '#f00';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Line of sight check (simple: no walls blocking line within same room)
+        function canSeeKiller() {
+            if (gameOver) return false;
+            const d = dist(player, killer);
+            if (d > 200) return false;
+            // Check if in same room (simplified)
+            const pr = getRoom(player.x, player.y);
+            const kr = getRoom(killer.x, killer.y);
+            if (pr !== kr) return false;
+            return true;
+        }
+
+        function getRoom(x, y) {
+            for (let i = 0; i < ROOMS.length; i++) {
+                const r = ROOMS[i];
+                if (x >= r.x*TILE && x < r.x*TILE + r.w*TILE &&
+                    y >= r.y*TILE && y < r.y*TILE + r.h*TILE) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // Show message temporarily
+        function showMessage(text, duration=2000) {
+            messageEl.textContent = text;
+            messageEl.style.opacity = 1;
+            setTimeout(() => messageEl.style.opacity = 0, duration);
+        }
+
+        // Update HUD
+        function updateHUD() {
+            hud.innerHTML = `
+                Status: ${player.hidden ? 'VERSTECKT' : 'SICHTBAR'}<br>
+                Key: ${key.collected ? '✓' : '❌'}<br>
+                Exit: ${exitDoor.open ? 'OFFEN' : 'VERSCHLOSSEN'}
+            `;
+        }
+
+        // Update killer AI (patrol between waypoints)
+        function updateKiller() {
+            if (gameOver) return;
+            const target = killer.path[killer.targetIdx];
+            const dx = target.x - killer.x;
+            const dy = target.y - killer.y;
+            const d = Math.hypot(dx, dy);
+            if (d < 5) {
+                killer.targetIdx = (killer.targetIdx + 1) % killer.path.length;
+            } else {
+                killer.x += (dx/d) * killer.speed;
+                killer.y += (dy/d) * killer.speed;
+            }
+
+            // Check if killer sees player
+            if (!player.hidden && canSeeKiller()) {
+                gameOver = true;
+                showMessage('DER MÖRDER HAT DICH GEFUNDEN!', 5000);
+                playSound(100, 1, 'sawtooth');
+            }
+        }
+
+        // Update player movement
+        function updatePlayer() {
+            if (gameOver || escaped) return;
+
+            if (player.hidden) {
+                player.hideTimer--;
+                if (player.hideTimer <= 0) {
+                    player.hidden = false;
+                    showMessage('Du kannst nicht mehr verstecken!');
+                }
+                return;
+            }
+
+            let dx = 0, dy = 0;
+            if (keys['w'] || keys['ArrowUp']) dy = -player.speed;
+            if (keys['s'] || keys['ArrowDown']) dy = player.speed;
+            if (keys['a'] || keys['ArrowLeft']) dx = -player.speed;
+            if (keys['d'] || keys['ArrowRight']) dx = player.speed;
+
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+
+            if (canMoveTo(newX, newY)) {
+                player.x = newX;
+                player.y = newY;
+            }
+
+            // Check key pickup
+            if (!key.collected && rectsOverlap(
+                {x: player.x - player.radius, y: player.y - player.radius, w: player.radius*2, h: player.radius*2},
+                key
+            )) {
+                key.collected = true;
+                exitDoor.open = true;
+                showMessage('Schlüssel gefunden! Tür offen!');
+                playSound(800, 0.2);
+            }
+
+            // Check exit
+            if (exitDoor.open && rectsOverlap(
+                {x: player.x - player.radius, y: player.y - player.radius, w: player.radius*2, h: player.radius*2},
+                exitDoor
+            )) {
+                escaped = true;
+                showMessage('DU BIST ENTFLOHEN!', 10000);
+                playSound(600, 0.3);
+            }
+
+            // Check hiding spots
+            for (let spot of hidingSpots) {
+                if (!spot.occupied && rectsOverlap(
+                    {x: player.x - player.radius, y: player.y - player.radius, w: player.radius*2, h: player.radius*2},
+                    spot
+                )) {
+                    if (keys['e'] || keys['E']) {
+                        player.hidden = true;
+                        player.hideTimer = 300; // 5 seconds at 60fps
+                        spot.occupied = true;
+                        showMessage('Versteckt! Bleib still...');
+                        // After hiding period, mark spot free
+                        setTimeout(() => { spot.occupied = false; }, 5000);
+                    }
+                }
+            }
+
+            // Heartbeat sound if killer close
+            if (canSeeKiller()) {
+                playSound(80 + (200 - dist(player, killer)), 0.1, 'triangle');
+            }
+        }
+
+        function draw() {
+            // Clear
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Camera follow player
+            const camX = player.x - canvas.width/2;
+            const camY = player.y - canvas.height/2;
+            ctx.save();
+            ctx.translate(-camX, -camY);
+
+            drawRooms();
+            drawHidingSpots();
+            drawKey();
+            drawExit();
+            drawKiller();
+            drawPlayer();
+
+            ctx.restore();
+
+            updateHUD();
+        }
+
+        function loop() {
+            updatePlayer();
+            updateKiller();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // Input
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            initAudio();
+        });
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Start
+        generateMap();
+        loop();
+
+        function generateMap() {
+            // Nothing needed; rooms defined statically
+        }
+    </script>
+</body>
+</html>

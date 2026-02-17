@@ -228,7 +228,7 @@
         function canSeeKiller() {
             if (gameOver) return false;
             const d = dist(player, killer);
-            if (d > 200) return false;
+            if (d > 100) return false;  // Reduced from 200 to 100
             // Check if in same room (simplified)
             const pr = getRoom(player.x, player.y);
             const kr = getRoom(killer.x, killer.y);

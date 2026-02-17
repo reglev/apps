@@ -26,8 +26,12 @@
             left: 0;
             width: 100%;
             height: 30vh;
-            display: flex;
+            display: none;
+            flex-direction: row;
             z-index: 100;
+        }
+        #touchZone.active {
+            display: flex;
         }
         #moveZone {
             flex: 2;
@@ -49,7 +53,7 @@
             border: 3px solid #fff;
             border-radius: 50%;
             color: #fff;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -61,13 +65,14 @@
         }
         #joystick {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: 0;
+            height: 0;
             border: 4px solid rgba(255,255,255,0.5);
             border-radius: 50%;
             background: rgba(255,255,255,0.1);
             transform: translate(-50%, -50%);
             pointer-events: none;
+            transition: width 0.2s, height 0.2s;
         }
         #joystick::after {
             content: '';
@@ -79,6 +84,10 @@
             background: rgba(255,255,255,0.7);
             border-radius: 50%;
             transform: translate(-50%, -50%);
+        }
+        #joystick.active {
+            width: 120px;
+            height: 120px;
         }
         #hud {
             position: absolute;
@@ -115,7 +124,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -124,15 +133,16 @@
             z-index: 200;
             font-size: 14px;
             text-align: center;
+            padding: 20px;
         }
         #startBtn {
-            margin-top: 20px;
-            padding: 12px 30px;
-            font-size: 18px;
+            margin-top: 30px;
+            padding: 16px 40px;
+            font-size: 20px;
             background: #f00;
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             touch-action: manipulation;
         }
     </style>
@@ -143,12 +153,13 @@
     <div id="message"></div>
     <div id="startOverlay">
         <h2>VERSTECK DICH</h2>
-        <p>Finde den Schlüssel und entkomme!</p>
-        <p>Wische links/rechts zum Bewegen</p>
-        <p>Verstecke dich in Schränken/Betten</p>
+        <p>Ein Killer jagt dich! Finde den Schlüssel (🔑) und entkomme durch die rote Tür.</p>
+        <p>• Wische unten links/rechts zum Bewegen</p>
+        <p>• Drücke VERSTECKEN wenn du in einem Schrank/Bett stehst</p>
+        <p>• Bleib nicht in Sichtweite des Killers!</p>
         <button id="startBtn">STARTEN</button>
     </div>
-    <div id="touchZone" style="display:none;">
+    <div id="touchZone">
         <div id="moveZone"></div>
         <div id="actionZone">
             <button id="hideBtn">VERSTECKEN</button>
@@ -190,7 +201,7 @@
         const player = {
             x: TILE * 5 + TILE/2,
             y: TILE * 4 + TILE/2,
-            speed: 0.2,
+            speed: 1.1,
             radius: 12,
             hidden: false,
             hideTimer: 0
@@ -200,8 +211,11 @@
         const killer = {
             x: TILE * 15,
             y: TILE * 10,
-            speed: 0.3,
+            speed: 1.2,
             radius: 14,
+            mode: 'PATROL', // PATROL or HUNT
+            huntCooldown: 0,
+            patrolTimer: 0,
             path: [
                 {x: TILE*15, y: TILE*10},
                 {x: TILE*18, y: TILE*10},
@@ -235,7 +249,7 @@
             return true;
         }
 
-        // Audio (simple)
+        // Audio
         let audioCtx = null;
         function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -287,15 +301,17 @@
         moveZone.addEventListener('touchstart', e => {
             e.preventDefault();
             if (!gameStarted) return;
-            touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            const touch = e.touches[0];
+            touchStartPos = { x: touch.clientX, y: touch.clientY };
             touchMoveActive = true;
-            updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+            updateJoystick(touch.clientX, touch.clientY);
         }, {passive:false});
 
         moveZone.addEventListener('touchmove', e => {
             e.preventDefault();
             if (!touchStartPos || !touchMoveActive) return;
-            updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+            const touch = e.touches[0];
+            updateJoystick(touch.clientX, touch.clientY);
         }, {passive:false});
 
         moveZone.addEventListener('touchend', e => {
@@ -303,7 +319,7 @@
             touchStartPos = null;
             touchMoveActive = false;
             touchInput = { dx: 0, dy: 0, active: false };
-            joystick.style.display = 'none';
+            joystick.classList.remove('active');
         }, {passive:false});
 
         function updateJoystick(clientX, clientY) {
@@ -317,7 +333,7 @@
             const moveX = Math.cos(angle) * distance;
             const moveY = Math.sin(angle) * distance;
 
-            joystick.style.display = 'block';
+            joystick.classList.add('active');
             joystick.style.left = (centerX + moveX) + 'px';
             joystick.style.top = (centerY + moveY) + 'px';
 
@@ -340,13 +356,14 @@
         startBtn.addEventListener('click', () => {
             gameStarted = true;
             startOverlay.style.display = 'none';
-            touchZone.style.display = 'flex';
+            touchZone.classList.add('active');
             initAudio();
         });
 
-        // Game logic
+        // Line of sight check
         function canSeeKiller() {
             if (gameOver) return false;
+            if (player.hidden) return false;
             const d = dist(player, killer);
             if (d > 50) return false;
             const pr = getRoom(player.x, player.y);
@@ -365,22 +382,57 @@
             hud.innerHTML = `Status: ${player.hidden ? 'VERSTECKT' : 'SICHTBAR'}<br>Key: ${key.collected ? '✓' : '❌'}<br>Exit: ${exitDoor.open ? 'OFFEN' : 'VERSCHLOSSEN'}`;
         }
 
+        // KILLER AI
         function updateKiller() {
             if (gameOver) return;
-            const target = killer.path[killer.targetIdx];
-            const dx = target.x - killer.x;
-            const dy = target.y - killer.y;
-            const d = Math.hypot(dx, dy);
-            if (d < 5) {
-                killer.targetIdx = (killer.targetIdx + 1) % killer.path.length;
-            } else {
-                killer.x += (dx/d) * killer.speed;
-                killer.y += (dy/d) * killer.speed;
-            }
-            if (!player.hidden && canSeeKiller()) {
+
+            // Collision check (touch kills)
+            const dCollision = dist(player, killer);
+            if (dCollision < player.radius + killer.radius) {
                 gameOver = true;
-                showMessage('DER MÖRDER HAT DICH GEFUNDEN!', 5000);
+                showMessage('DER MÖRDER HAT DICH!', 5000);
                 playSound(100, 1, 'sawtooth');
+                return;
+            }
+
+            // State machine
+            if (player.hidden) {
+                killer.mode = 'PATROL';
+                killer.patrolTimer = 120; // ~2 sec delay
+            } else if (canSeeKiller()) {
+                killer.mode = 'HUNT';
+                killer.huntCooldown = 0;
+            } else if (killer.mode === 'HUNT') {
+                killer.huntCooldown++;
+                if (killer.huntCooldown > 180) {
+                    killer.mode = 'PATROL';
+                }
+            }
+
+            // Movement
+            if (killer.mode === 'PATROL') {
+                if (killer.patrolTimer > 0) {
+                    killer.patrolTimer--;
+                } else {
+                    const target = killer.path[killer.targetIdx];
+                    const dx = target.x - killer.x;
+                    const dy = target.y - killer.y;
+                    const d = Math.hypot(dx, dy);
+                    if (d < 5) {
+                        killer.targetIdx = (killer.targetIdx + 1) % killer.path.length;
+                    } else {
+                        killer.x += (dx/d) * killer.speed;
+                        killer.y += (dy/d) * killer.speed;
+                    }
+                }
+            } else if (killer.mode === 'HUNT') {
+                const dx = player.x - killer.x;
+                const dy = player.y - killer.y;
+                const d = Math.hypot(dx, dy);
+                if (d > 0) {
+                    killer.x += (dx/d) * killer.speed;
+                    killer.y += (dy/d) * killer.speed;
+                }
             }
         }
 
@@ -391,17 +443,17 @@
                 player.hideTimer--;
                 if (player.hideTimer <= 0) {
                     player.hidden = false;
-                    showMessage('Du kannst nicht mehr verstecken!');
+                    showMessage('Du bist nicht mehr versteckt!');
                 }
                 return;
             }
 
+            // Movement from touch or keyboard
             let dx = 0, dy = 0;
             if (touchInput.active) {
                 dx = touchInput.dx;
                 dy = touchInput.dy;
             }
-
             if (keys['w'] || keys['ArrowUp']) dy = -1;
             if (keys['s'] || keys['ArrowDown']) dy = 1;
             if (keys['a'] || keys['ArrowLeft']) dx = -1;
@@ -444,7 +496,7 @@
                         spot
                     )) {
                         player.hidden = true;
-                        player.hideTimer = 300;
+                        player.hideTimer = 300; // 5 sec at 60fps
                         spot.occupied = true;
                         showMessage('Versteckt! Bleib still...');
                         setTimeout(() => { spot.occupied = false; }, 5000);
@@ -453,7 +505,7 @@
                 }
             }
 
-            // Heartbeat if killer close
+            // Heartbeat sound if killer close
             if (canSeeKiller()) {
                 playSound(80 + (200 - dist(player, killer)), 0.1, 'triangle');
             }
@@ -530,20 +582,16 @@
                 ctx.shadowBlur = 10;
                 ctx.fill();
                 ctx.shadowBlur = 0;
+                
+                // Mode indicator
+                ctx.fillStyle = killer.mode === 'HUNT' ? '#ff0' : '#f00';
+                ctx.font = '10px monospace';
+                ctx.fillText(killer.mode[0], killer.x + killer.radius - 3, killer.y + killer.radius + 3);
             }
 
             ctx.restore();
-
             updateHUD();
         }
-
-        // Keyboard for debugging on desktop (still works)
-        const keys = {};
-        window.addEventListener('keydown', e => {
-            keys[e.key] = true;
-            initAudio();
-        });
-        window.addEventListener('keyup', e => keys[e.key] = false);
 
         function loop() {
             updatePlayer();
@@ -551,6 +599,14 @@
             draw();
             requestAnimationFrame(loop);
         }
+
+        // Keyboard for debugging
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            initAudio();
+        });
+        window.addEventListener('keyup', e => keys[e.key] = false);
 
         // Start
         loop();

@@ -272,8 +272,8 @@
         function rectsOverlap(a, b) {
             return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
         }
-        function dist(a, b) {
-            return Math.hypot((a.x + a.w/2) - (b.x + b.w/2), (a.y + a.h/2) - (b.y + b.h/2));
+        function distEntities(a, b) {
+            return Math.hypot(a.x - b.x, a.y - b.y);
         }
         function getRoom(x, y) {
             for (let i = 0; i < ROOMS.length; i++) {
@@ -364,7 +364,7 @@
         function canSeeKiller() {
             if (gameOver) return false;
             if (player.hidden) return false;
-            const d = dist(player, killer);
+            const d = distEntities(player, killer);
             if (d > 50) return false;
             const pr = getRoom(player.x, player.y);
             const kr = getRoom(killer.x, killer.y);
@@ -386,8 +386,8 @@
         function updateKiller() {
             if (gameOver) return;
 
-            // Collision check (touch kills)
-            const dCollision = dist(player, killer);
+            // Collision check (touch kills) - circle-circle
+            const dCollision = distEntities(player, killer);
             if (dCollision < player.radius + killer.radius) {
                 gameOver = true;
                 showMessage('DER MÖRDER HAT DICH!', 5000);

@@ -201,7 +201,7 @@
         const player = {
             x: TILE * 5 + TILE/2,
             y: TILE * 4 + TILE/2,
-            speed: 1.1,
+            speed: 4,
             radius: 12,
             hidden: false,
             hideTimer: 0
@@ -211,7 +211,7 @@
         const killer = {
             x: TILE * 15,
             y: TILE * 10,
-            speed: 1.2,
+            speed: 4.5,
             radius: 14,
             mode: 'PATROL', // PATROL or HUNT
             huntCooldown: 0,
@@ -574,19 +574,13 @@
 
             // Killer
             if (!gameOver) {
-                ctx.fillStyle = '#f00';
+                ctx.fillStyle = 'rgba(80,0,0,0.6)'; // Dark shadow
                 ctx.beginPath();
                 ctx.arc(killer.x + killer.radius, killer.y + killer.radius, killer.radius, 0, Math.PI*2);
                 ctx.fill();
-                ctx.shadowColor = '#f00';
-                ctx.shadowBlur = 10;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                
-                // Mode indicator
-                ctx.fillStyle = killer.mode === 'HUNT' ? '#ff0' : '#f00';
-                ctx.font = '10px monospace';
-                ctx.fillText(killer.mode[0], killer.x + killer.radius - 3, killer.y + killer.radius + 3);
+                ctx.strokeStyle = 'rgba(150,0,0,0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
             }
 
             ctx.restore();

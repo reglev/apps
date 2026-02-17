@@ -72,28 +72,28 @@
         const player = {
             x: TILE * 5 + TILE/2,
             y: TILE * 4 + TILE/2,
-            speed: 1.1,
+            speed: 2.5,
             radius: 10,
             hidden: false,
             hideTimer: 0
         };
 
-        // Killer
+        // Killer - invisible except when close
         const killer = {
             x: TILE * 15,
             y: TILE * 10,
-            speed: 1.2,
+            speed: 2.8,
             radius: 12,
-            mode: 'PATROL', // PATROL or HUNT
+            mode: 'PATROL',
             huntCooldown: 0,
+            patrolTimer: 0,
             path: [
                 {x: TILE*15, y: TILE*10},
                 {x: TILE*18, y: TILE*10},
                 {x: TILE*18, y: TILE*2},
                 {x: TILE*15, y: TILE*2}
             ],
-            targetIdx: 0,
-            patrolTimer: 0
+            targetIdx: 0
         };
 
         // Items
@@ -212,18 +212,17 @@
             ctx.fill();
         }
 
-        // Draw killer
+        // Draw killer (invisible unless close to player)
         function drawKiller() {
             if (gameOver) return;
-            ctx.fillStyle = '#f00';
+            const d = dist(player, killer);
+            if (d > 150) return; // Invisible beyond 150px
+            
+            // Draw as faint shadow (invisible effect)
+            ctx.fillStyle = d < 80 ? 'rgba(255,0,0,0.8)' : 'rgba(100,0,0,0.3)';
             ctx.beginPath();
             ctx.arc(killer.x + killer.radius, killer.y + killer.radius, killer.radius, 0, Math.PI*2);
             ctx.fill();
-            // Glow
-            ctx.shadowColor = '#f00';
-            ctx.shadowBlur = 10;
-            ctx.fill();
-            ctx.shadowBlur = 0;
         }
 
         // Line of sight check (simple: no walls blocking line within same room)

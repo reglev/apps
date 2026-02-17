@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Versteck dich Mobile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: monospace;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #111;
+        }
+        #touchZone {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30vh;
+            display: flex;
+            z-index: 100;
+        }
+        #moveZone {
+            flex: 2;
+            background: rgba(0,0,0,0.3);
+            position: relative;
+        }
+        #actionZone {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #hideBtn {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,0,0,0.7);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        #hideBtn:active {
+            background: rgba(255,0,0,1);
+        }
+        #joystick {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 4px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        #joystick::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #f00;
+            text-shadow: 0 0 5px #000;
+            font-size: 12px;
+            z-index: 100;
+            background: rgba(0,0,0,0.6);
+            padding: 8px;
+            border-radius: 8px;
+        }
+        #message {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            text-shadow: 0 0 10px #000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        #startOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            z-index: 200;
+            font-size: 14px;
+            text-align: center;
+        }
+        #startBtn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 18px;
+            background: #f00;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="hud"></div>
+    <div id="message"></div>
+    <div id="startOverlay">
+        <h2>VERSTECK DICH</h2>
+        <p>Finde den Schlüssel und entkomme!</p>
+        <p>Wische links/rechts zum Bewegen</p>
+        <p>Verstecke dich in Schränken/Betten</p>
+        <button id="startBtn">STARTEN</button>
+    </div>
+    <div id="touchZone" style="display:none;">
+        <div id="moveZone"></div>
+        <div id="actionZone">
+            <button id="hideBtn">VERSTECKEN</button>
+        </div>
+    </div>
+    <div id="joystick"></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const hud = document.getElementById('hud');
+        const messageEl = document.getElementById('message');
+        const startOverlay = document.getElementById('startOverlay');
+        const startBtn = document.getElementById('startBtn');
+        const touchZone = document.getElementById('touchZone');
+        const moveZone = document.getElementById('moveZone');
+        const hideBtn = document.getElementById('hideBtn');
+        const joystick = document.getElementById('joystick');
+
+        let gameStarted = false;
+        let touchInput = { dx: 0, dy: 0, active: false };
+        let hidePressed = false;
+
+        // Config
+        const TILE = 40;
+        const ROOMS = [
+            { x: 0, y: 0, w: 10, h: 8, type: 'hall' },
+            { x: 10, y: 0, w: 6, h: 8, type: 'bedroom' },
+            { x: 0, y: 8, w: 8, h: 6, type: 'kitchen' },
+            { x: 8, y: 8, w: 8, h: 6, type: 'bathroom' },
+            { x: 16, y: 0, w: 4, h: 8, type: 'cellar' }
+        ];
+
+        // State
+        let gameOver = false;
+        let escaped = false;
+
+        // Player
+        const player = {
+            x: TILE * 5 + TILE/2,
+            y: TILE * 4 + TILE/2,
+            speed: 0.2,
+            radius: 12,
+            hidden: false,
+            hideTimer: 0
+        };
+
+        // Killer
+        const killer = {
+            x: TILE * 15,
+            y: TILE * 10,
+            speed: 0.3,
+            radius: 14,
+            path: [
+                {x: TILE*15, y: TILE*10},
+                {x: TILE*18, y: TILE*10},
+                {x: TILE*18, y: TILE*2},
+                {x: TILE*15, y: TILE*2}
+            ],
+            targetIdx: 0
+        };
+
+        // Items
+        const key = { x: TILE*14, y: TILE*5, collected: false, w: 20, h: 20 };
+        const exitDoor = { x: TILE*1, y: TILE*1, w: 40, h: 60, open: false };
+
+        // Hiding spots (bigger for touch)
+        const hidingSpots = [
+            { x: TILE*11, y: TILE*4, w: 50, h: 30, type: 'wardrobe', occupied: false },
+            { x: TILE*2, y: TILE*10, w: 40, h: 30, type: 'bed', occupied: false },
+            { x: TILE*9, y: TILE*9, w: 45, h: 30, type: 'closet', occupied: false },
+            { x: TILE*16, y: TILE*1, w: 40, h: 40, type: 'cabinet', occupied: false }
+        ];
+
+        // Wall collision (simplified doorways)
+        function canMoveTo(x, y) {
+            if (x < TILE || x > 20*TILE || y < TILE || y > 14*TILE) return false;
+            const cx = Math.floor(x/TILE);
+            const cy = Math.floor(y/TILE);
+            if (cy >= 3 && cy <= 5 && cx === 10) return true;
+            if (cx >= 4 && cx <= 5 && cy === 8) return true;
+            if (cx >= 8 && cx <= 9 && cy === 8) return true;
+            if (cx >= 15 && cy >= 1 && cy <= 6) return true;
+            return true;
+        }
+
+        // Audio (simple)
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function playSound(freq, duration, type='sine') {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Helpers
+        function rectsOverlap(a, b) {
+            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        }
+        function dist(a, b) {
+            return Math.hypot((a.x + a.w/2) - (b.x + b.w/2), (a.y + a.h/2) - (b.y + b.h/2));
+        }
+        function getRoom(x, y) {
+            for (let i = 0; i < ROOMS.length; i++) {
+                const r = ROOMS[i];
+                if (x >= r.x*TILE && x < r.x*TILE + r.w*TILE &&
+                    y >= r.y*TILE && y < r.y*TILE + r.h*TILE) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // Resize
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Touch controls
+        let touchStartPos = null;
+        let touchMoveActive = false;
+
+        moveZone.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (!gameStarted) return;
+            touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            touchMoveActive = true;
+            updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive:false});
+
+        moveZone.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (!touchStartPos || !touchMoveActive) return;
+            updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive:false});
+
+        moveZone.addEventListener('touchend', e => {
+            e.preventDefault();
+            touchStartPos = null;
+            touchMoveActive = false;
+            touchInput = { dx: 0, dy: 0, active: false };
+            joystick.style.display = 'none';
+        }, {passive:false});
+
+        function updateJoystick(clientX, clientY) {
+            const rect = moveZone.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            const dx = clientX - centerX;
+            const dy = clientY - centerY;
+            const distance = Math.min(60, Math.hypot(dx, dy));
+            const angle = Math.atan2(dy, dx);
+            const moveX = Math.cos(angle) * distance;
+            const moveY = Math.sin(angle) * distance;
+
+            joystick.style.display = 'block';
+            joystick.style.left = (centerX + moveX) + 'px';
+            joystick.style.top = (centerY + moveY) + 'px';
+
+            touchInput.dx = Math.cos(angle);
+            touchInput.dy = Math.sin(angle);
+            touchInput.active = true;
+        }
+
+        hideBtn.addEventListener('touchstart', e => {
+            e.preventDefault();
+            hidePressed = true;
+            hideBtn.style.background = 'rgba(255,0,0,1)';
+        });
+        hideBtn.addEventListener('touchend', e => {
+            e.preventDefault();
+            hidePressed = false;
+            hideBtn.style.background = 'rgba(255,0,0,0.7)';
+        });
+
+        startBtn.addEventListener('click', () => {
+            gameStarted = true;
+            startOverlay.style.display = 'none';
+            touchZone.style.display = 'flex';
+            initAudio();
+        });
+
+        // Game logic
+        function canSeeKiller() {
+            if (gameOver) return false;
+            const d = dist(player, killer);
+            if (d > 50) return false;
+            const pr = getRoom(player.x, player.y);
+            const kr = getRoom(killer.x, killer.y);
+            if (pr !== kr) return false;
+            return true;
+        }
+
+        function showMessage(text, duration=2000) {
+            messageEl.textContent = text;
+            messageEl.style.opacity = 1;
+            setTimeout(() => messageEl.style.opacity = 0, duration);
+        }
+
+        function updateHUD() {
+            hud.innerHTML = `Status: ${player.hidden ? 'VERSTECKT' : 'SICHTBAR'}<br>Key: ${key.collected ? '✓' : '❌'}<br>Exit: ${exitDoor.open ? 'OFFEN' : 'VERSCHLOSSEN'}`;
+        }
+
+        function updateKiller() {
+            if (gameOver) return;
+            const target = killer.path[killer.targetIdx];
+            const dx = target.x - killer.x;
+            const dy = target.y - killer.y;
+            const d = Math.hypot(dx, dy);
+            if (d < 5) {
+                killer.targetIdx = (killer.targetIdx + 1) % killer.path.length;
+            } else {
+                killer.x += (dx/d) * killer.speed;
+                killer.y += (dy/d) * killer.speed;
+            }
+            if (!player.hidden && canSeeKiller()) {
+                gameOver = true;
+                showMessage('DER MÖRDER HAT DICH GEFUNDEN!', 5000);
+                playSound(100, 1, 'sawtooth');
+            }
+        }
+
+        function updatePlayer() {
+            if (gameOver || escaped) return;
+
+            if (player.hidden) {
+                player.hideTimer--;
+                if (player.hideTimer <= 0) {
+                    player.hidden = false;
+                    showMessage('Du kannst nicht mehr verstecken!');
+                }
+                return;
+            }
+
+            let dx = 0, dy = 0;
+            if (touchInput.active) {
+                dx = touchInput.dx;
+                dy = touchInput.dy;
+            }
+
+            if (keys['w'] || keys['ArrowUp']) dy = -1;
+            if (keys['s'] || keys['ArrowDown']) dy = 1;
+            if (keys['a'] || keys['ArrowLeft']) dx = -1;
+            if (keys['d'] || keys['ArrowRight']) dx = 1;
+
+            const newX = player.x + dx * player.speed;
+            const newY = player.y + dy * player.speed;
+
+            if (canMoveTo(newX, newY)) {
+                player.x = newX;
+                player.y = newY;
+            }
+
+            // Key pickup
+            if (!key.collected && rectsOverlap(
+                {x: player.x - player.radius, y: player.y - player.radius, w: player.radius*2, h: player.radius*2},
+                key
+            )) {
+                key.collected = true;
+                exitDoor.open = true;
+                showMessage('Schlüssel gefunden! Tür offen!');
+                playSound(800, 0.2);
+            }
+
+            // Exit
+            if (exitDoor.open && rectsOverlap(
+                {x: player.x - player.radius, y: player.y - player.radius, w: player.radius*2, h: player.radius*2},
+                exitDoor
+            )) {
+                escaped = true;
+                showMessage('DU BIST ENTFLOHEN!', 10000);
+                playSound(600, 0.3);
+            }
+
+            // Hiding
+            if (hidePressed) {
+                for (let spot of hidingSpots) {
+                    if (!spot.occupied && rectsOverlap(
+                        {x: player.x - player.radius, y: player.y - player.radius, w: player.radius*2, h: player.radius*2},
+                        spot
+                    )) {
+                        player.hidden = true;
+                        player.hideTimer = 300;
+                        spot.occupied = true;
+                        showMessage('Versteckt! Bleib still...');
+                        setTimeout(() => { spot.occupied = false; }, 5000);
+                        break;
+                    }
+                }
+            }
+
+            // Heartbeat if killer close
+            if (canSeeKiller()) {
+                playSound(80 + (200 - dist(player, killer)), 0.1, 'triangle');
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const camX = player.x - canvas.width/2;
+            const camY = player.y - canvas.height/2;
+            ctx.save();
+            ctx.translate(-camX, -camY);
+
+            // Rooms
+            ctx.fillStyle = '#222';
+            for (let r of ROOMS) {
+                ctx.fillRect(r.x*TILE, r.y*TILE, r.w*TILE, r.h*TILE);
+                ctx.strokeStyle = '#444';
+                ctx.strokeRect(r.x*TILE, r.y*TILE, r.w*TILE, r.h*TILE);
+            }
+            ctx.fillStyle = '#2a2a2a';
+            for (let r of ROOMS) {
+                ctx.fillRect(r.x*TILE + 4, r.y*TILE + 4, r.w*TILE - 8, r.h*TILE - 8);
+            }
+
+            // Hiding spots
+            for (let spot of hidingSpots) {
+                ctx.fillStyle = spot.occupied ? '#0f0' : '#530';
+                ctx.fillRect(spot.x, spot.y, spot.w, spot.h);
+                ctx.strokeStyle = spot.occupied ? '#0f0' : '#f00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(spot.x, spot.y, spot.w, spot.h);
+                ctx.lineWidth = 1;
+            }
+
+            // Key
+            if (!key.collected) {
+                ctx.fillStyle = '#ff0';
+                ctx.fillRect(key.x, key.y, key.w, key.h);
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 20px monospace';
+                ctx.fillText('🔑', key.x+2, key.y+15);
+            }
+
+            // Exit
+            ctx.fillStyle = exitDoor.open ? 'rgba(255,0,0,0.4)' : '#600';
+            ctx.fillRect(exitDoor.x, exitDoor.y, exitDoor.w, exitDoor.h);
+            ctx.strokeStyle = exitDoor.open ? '#f00' : '#300';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(exitDoor.x, exitDoor.y, exitDoor.w, exitDoor.h);
+            ctx.lineWidth = 1;
+            if (exitDoor.open) {
+                ctx.fillStyle = '#f00';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText('RAUS!', exitDoor.x+5, exitDoor.y+35);
+            }
+
+            // Player
+            if (!player.hidden) {
+                ctx.fillStyle = player.hideTimer > 0 ? '#0ff' : '#0f0';
+                ctx.beginPath();
+                ctx.arc(player.x + player.radius, player.y + player.radius, player.radius, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // Killer
+            if (!gameOver) {
+                ctx.fillStyle = '#f00';
+                ctx.beginPath();
+                ctx.arc(killer.x + killer.radius, killer.y + killer.radius, killer.radius, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowColor = '#f00';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.restore();
+
+            updateHUD();
+        }
+
+        // Keyboard for debugging on desktop (still works)
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            initAudio();
+        });
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        function loop() {
+            updatePlayer();
+            updateKiller();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // Start
+        loop();
+    </script>
+</body>
+</html>
